@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:histocr_app/providers/auth_provider.dart';
+import 'package:histocr_app/screens/complete_profile_screen.dart';
 import 'package:histocr_app/screens/home_screen.dart';
 import 'package:histocr_app/screens/login_screen.dart';
 import 'package:histocr_app/theme/theme.dart';
 import 'package:histocr_app/utils/routes.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -20,11 +37,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: GoogleFonts.inter().fontFamily,
         colorScheme: colorSchemeLight,
+        inputDecorationTheme: textInputDecoration,
         useMaterial3: true,
       ),
       routes: {
-         Routes.home: (context) => const HomeScreen(),
-         Routes.login: (context) => const LoginScreen(),
+        Routes.home: (context) => const HomeScreen(),
+        Routes.login: (context) => const LoginScreen(),
+        Routes.completeProfile: (context) => const CompleteProfileScreen(),
       },
       initialRoute: Routes.login,
     );

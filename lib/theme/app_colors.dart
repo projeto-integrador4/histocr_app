@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
-const textColor = Color(0xFF0e0c0a);
+const textColor = Color(0xFF0f0d0b);
 const backgroundColor = Color(0xFFe6d7b7);
 const primaryColor = Color(0xFF9a8f74);
-const primaryFgColor = Color(0xFF0e0c0a);
-const secondaryColor = Color(0xFFbcc5ae);
-const secondaryFgColor = Color(0xFF0e0c0a);
+const secondaryColor = Color(0xFF9ab4de);
+const secondaryColorDark = Color(0xFF325A9A);
 const accentColor = Color(0xFFb42808);
-const accentFgColor = Color(0xFFe6d7b7);
-const errorColor = Color(0xffB3261E);
-
+const white = Color(0xFFE9E6E2);
+const inputBorderColor = Color(0xFFe9e9e9);

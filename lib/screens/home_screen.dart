@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/histocr_title.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
 import 'package:histocr_app/theme/app_colors.dart';
+import 'package:histocr_app/utils/routes.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -71,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   ScreenWidthButton(
                     label: 'Iniciar Chat',
-                    onPressed: () {},
+                    onPressed: () => navigator.pushNamed(Routes.chat),
                     color: secondaryColor,
                   ),
                   const SizedBox(height: 8),

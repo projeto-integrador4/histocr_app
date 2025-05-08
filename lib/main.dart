@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/providers/auth_provider.dart';
+import 'package:histocr_app/providers/chat_provider.dart';
+import 'package:histocr_app/screens/chat_screen.dart';
 import 'package:histocr_app/screens/complete_profile_screen.dart';
 import 'package:histocr_app/screens/home_screen.dart';
 import 'package:histocr_app/screens/login_screen.dart';
@@ -22,6 +23,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => ChatProvider()),
       ],
       child: const MyApp(),
     ),
@@ -44,10 +46,12 @@ class MyApp extends StatelessWidget {
         inputDecorationTheme: textInputDecoration,
         useMaterial3: true,
       ),
+      locale: const Locale('pt', 'BR'),
       routes: {
         Routes.home: (context) => const HomeScreen(),
         Routes.login: (context) => const LoginScreen(),
         Routes.completeProfile: (context) => const CompleteProfileScreen(),
+        Routes.chat: (context) => const ChatScreen(), 
       },
       initialRoute: Routes.login,
     );

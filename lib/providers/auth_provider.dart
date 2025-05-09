@@ -4,11 +4,14 @@ import 'package:histocr_app/providers/base_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider extends BaseProvider {
+  bool hasJob = false;
+
   Future<void> login() async {
     setLoading(true);
 
     try {
       await _nativeGoogleSignIn();
+      await _checkIfUserHasJob();
       success = true;
     } catch (e) {
       success = false;
@@ -41,5 +44,25 @@ class AuthProvider extends BaseProvider {
       idToken: idToken,
       accessToken: accessToken,
     );
+  }
+
+  Future<void> _checkIfUserHasJob() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      throw 'User is not logged in.';
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('job')
+          .eq('id', user.id)
+          .limit(1)
+          .single();
+
+      hasJob = response['job'] != null;
+    } catch (e) {
+      throw 'Error fetching user job: $e';
+    }
   }
 }

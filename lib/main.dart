@@ -19,6 +19,7 @@ Future<void> main() async {
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
+
   runApp(
     MultiProvider(
       providers: [
@@ -51,9 +52,10 @@ class MyApp extends StatelessWidget {
         Routes.home: (context) => const HomeScreen(),
         Routes.login: (context) => const LoginScreen(),
         Routes.completeProfile: (context) => const CompleteProfileScreen(),
-        Routes.chat: (context) => const ChatScreen(), 
+        Routes.chat: (context) => const ChatScreen(),
       },
-      initialRoute: Routes.login,
+      initialRoute:
+          supabase.auth.currentSession == null ? Routes.login : Routes.home,
     );
   }
 }

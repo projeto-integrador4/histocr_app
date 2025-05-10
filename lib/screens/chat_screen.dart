@@ -5,8 +5,8 @@ import 'package:histocr_app/components/chat_bubble.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
-import 'package:histocr_app/utils/asset_picker_utils/custom_button_asset_picker_builder.dart';
-import 'package:histocr_app/utils/asset_picker_utils/text_delegates.dart';
+import 'package:histocr_app/components/assets_picker/custom_asset_picker_builder.dart';
+import 'package:histocr_app/utils/portuguese_text_delegates.dart';
 import 'package:provider/provider.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
@@ -17,7 +17,7 @@ class ChatScreen extends StatelessWidget {
   openAssetPicker(BuildContext context) async {
     await AssetPicker.pickAssetsWithDelegate(
       context,
-      delegate: CustomButtonAssetPickerBuilderDelegate(
+      delegate: CustomAssetPickerBuilderDelegate(
         textDelegate: PortugueseAssetPickerTextDelegate(),
         themeColor: secondaryColor,
         pathNameBuilder: (AssetPathEntity path) => switch (path) {
@@ -65,11 +65,11 @@ class ChatScreen extends StatelessWidget {
                     icon: Icons.camera_alt_rounded,
                     onPressed: () async {
                       await CameraPicker.pickFromCamera(context,
-                        createPickerState: () => CustomCameraPickerState(images: []),
-                        pickerConfig: CameraPickerConfig(
-                          textDelegate: PortugueseCameraPickerTextDelegate(),
-                        )
-                      );
+                          createPickerState: () =>
+                              CustomCameraPickerState(images: []),
+                          pickerConfig: CameraPickerConfig(
+                            textDelegate: PortugueseCameraPickerTextDelegate(),
+                          ));
                     },
                   ),
                   const SizedBox(height: 4),

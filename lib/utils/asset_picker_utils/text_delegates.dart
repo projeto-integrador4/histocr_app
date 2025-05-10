@@ -1,4 +1,5 @@
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
+import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 class PortugueseAssetPickerTextDelegate extends AssetPickerTextDelegate {
   @override
@@ -21,4 +22,24 @@ class PortugueseAssetPickerTextDelegate extends AssetPickerTextDelegate {
 
   @override
   String get goToSystemSettings => 'Ir para as configurações do sistema';
+}
+
+class PortugueseCameraPickerTextDelegate
+    extends CameraPickerTextDelegate {
+ 
+  @override
+  String get confirm => 'Confirmar';
+
+  @override
+  String get shootingTips => '';
+
+  @override
+  String get loadFailed => 'Erro ao carregar';
+
+  @override
+  String get loading => 'Carregando...';
+
+  @override
+  String get saving => 'Salvando...';
+  
 }

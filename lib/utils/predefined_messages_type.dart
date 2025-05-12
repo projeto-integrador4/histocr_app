@@ -16,7 +16,7 @@ extension PredefinedMessageTypeExtension on PredefinedMessageType {
       case PredefinedMessageType.correction:
         return "Você gostaria de corrigir os erros nessa transcrição?";
       case PredefinedMessageType.editName:
-        return "Sua transcrição está quase pronta! Você pode editar o nome dela clicando no ícone abaixo:";
+        return "Sua transcrição ficará salva como:";
       case PredefinedMessageType.transcription:
         return '';
     }

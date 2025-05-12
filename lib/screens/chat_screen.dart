@@ -65,28 +65,26 @@ class ChatScreen extends StatelessWidget {
   }
 
   Widget _buildUserMessageContent(ChatMessage message) {
-    return ChatBubble(
-      isUserMessage: true,
-      child: message.image == null
-          ? Text(message.textContent ?? '')
-          : Image.file(message.image!),
-    );
+    return message.image == null
+        ? Text(message.textContent ?? '')
+        : Image.file(message.image!);
   }
 
-  Widget _buildPredefinedMessageCont(ChatMessage message, BuildContext context) {
+  Widget _buildPredefinedMessageCont(
+      ChatMessage message, BuildContext context) {
     final type = message.type!;
     final provider = Provider.of<ChatProvider>(context);
     return switch (type) {
-      PredefinedMessageType.rating => PredefinedRatingMessage(
+      PredefinedMessageType.rating => RatingMessage(
           rating: provider.document?.rating ?? 0,
           onRatingChanged: (newRating) => provider.updateRating(newRating),
         ),
-      PredefinedMessageType.correction => PredefinedCorrectionMessage(
+      PredefinedMessageType.correction => CorrectionMessage(
           document: provider.document!,
         ),
-      PredefinedMessageType.editName ||
-      PredefinedMessageType.firstMessage =>
-        Text(type.text),
+      PredefinedMessageType.editName =>
+        EditNameMessage(name: provider.document?.name ?? ''),
+      PredefinedMessageType.firstMessage => Text(type.text),
       PredefinedMessageType.transcription => TranscriptionMessage(
           transcription: provider.document?.originalText ?? '',
         ),

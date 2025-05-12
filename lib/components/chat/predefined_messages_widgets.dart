@@ -6,11 +6,11 @@ import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 
-class PredefinedRatingMessage extends StatelessWidget {
+class RatingMessage extends StatelessWidget {
   final Function(int)? onRatingChanged;
   final int rating;
 
-  const PredefinedRatingMessage({
+  const RatingMessage({
     super.key,
     this.onRatingChanged,
     this.rating = 0,
@@ -33,11 +33,11 @@ class PredefinedRatingMessage extends StatelessWidget {
   }
 }
 
-class PredefinedCorrectionMessage extends StatelessWidget {
+class CorrectionMessage extends StatelessWidget {
   final Document document;
   late final TextEditingController transcriptionTextEditingController;
 
-  PredefinedCorrectionMessage({
+  CorrectionMessage({
     super.key,
     required this.document,
   }) : transcriptionTextEditingController =
@@ -170,6 +170,39 @@ class TranscriptionMessage extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class EditNameMessage extends StatelessWidget {
+  final String name;
+
+  const EditNameMessage({
+    super.key,
+    required this.name,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(PredefinedMessageType.editName.text),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              name,
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              onPressed: () {
+                //TODO edit the name
+              },
+              icon: const Icon(Icons.edit_rounded),
             ),
           ],
         ),

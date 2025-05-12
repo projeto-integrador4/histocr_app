@@ -33,19 +33,30 @@ class CustomAssetPickerBuilderDelegate
 
   @override
   Widget confirmButton(BuildContext context) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: secondaryColor,
-        disabledBackgroundColor: secondaryColor.withOpacity(0.5),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      onPressed: () {},
-      child: const Text(
-        'Confirmar',
-        style: TextStyle(
-          fontSize: 17,
-        ),
-      ),
+    return Consumer<DefaultAssetPickerProvider>(
+      builder: (_, DefaultAssetPickerProvider p, __) {
+        final bool isSelectedNotEmpty = p.isSelectedNotEmpty;
+        final bool shouldAllowConfirm =
+            isSelectedNotEmpty || p.previousSelectedAssets.isNotEmpty;
+        return FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: secondaryColor,
+            disabledBackgroundColor: secondaryColor.withOpacity(0.5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+          onPressed: shouldAllowConfirm
+              ? () {
+                  Navigator.maybeOf(context)?.maybePop(p.selectedAssets);
+                }
+              : null,
+          child: const Text(
+            'Confirmar',
+            style: TextStyle(
+              fontSize: 17,
+            ),
+          ),
+        );
+      },
     );
   }
 

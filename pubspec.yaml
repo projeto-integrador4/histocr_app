@@ -43,6 +43,7 @@ dependencies:
   provider: ^6.1.5
   wechat_assets_picker: ^9.5.0
   wechat_camera_picker: ^4.3.7
+  cached_network_image: ^3.4.1
 
 
 dev_dependencies:

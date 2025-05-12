@@ -7,8 +7,6 @@ import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 class CustomCameraPickerState extends CameraPickerState {
   List<File> images = [];
-  File get currentImage => images.isNotEmpty ? images.last : File('');
-
   CustomCameraPickerState({required this.images});
 
   @override

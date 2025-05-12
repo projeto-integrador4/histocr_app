@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:histocr_app/components/camera_picker/miniature_widgets.dart';
+import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 class CustomCameraPickerViewerState extends CameraPickerViewerState {
@@ -56,20 +58,27 @@ class CustomCameraPickerViewerState extends CameraPickerViewerState {
   Widget buildConfirmButton(BuildContext context) {
     return FilledButton(
       style: FilledButton.styleFrom(
-      backgroundColor: secondaryColor,
-      foregroundColor: textColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+        backgroundColor: secondaryColor,
+        foregroundColor: textColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
       onPressed: createAssetEntityAndPop,
       child: const Text(
-      "Confirmar",
-      style: TextStyle(
-        fontWeight: FontWeight.w600,
-      ),
+        "Confirmar",
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
+  }
+
+  @override
+  Future<void> createAssetEntityAndPop() async {
+    final provider = Provider.of<ChatProvider>(context, listen: false);
+    provider.addUserMessages(images);
+    super.createAssetEntityAndPop();
   }
 
   @override

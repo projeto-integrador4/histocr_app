@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/document.dart';
@@ -136,9 +137,9 @@ class TranscriptionMessage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             InkWell(
-              onTap: () {
-                //TODO copy the transcription
-              },
+              onTap: () => Clipboard.setData(
+                  ClipboardData(text: transcription),
+                ),
               child: Row(
                 children: [
                   const Icon(

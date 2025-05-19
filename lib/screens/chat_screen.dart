@@ -133,6 +133,7 @@ class ChatScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     SendPictureButton(
+                      //TODO ver ngc da tela em chines dps q autoriza
                       label: 'Escolher da galeria',
                       icon: Icons.photo_library_rounded,
                       onPressed: () => _pickImagesFromGallery(context),

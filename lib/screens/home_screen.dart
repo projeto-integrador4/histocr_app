@@ -1,17 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/histocr_title.dart';
+import 'package:histocr_app/components/last_transcripts_item.dart';
+import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
+import 'package:histocr_app/main.dart';
+import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/routes.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Document> documents = [];
+  bool success = false;
+  bool loading = false;
+
+  void _fetchDocuments() async {
+    success = true;
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      final response = await supabase
+          .from('documents')
+          .select()
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .order('updated_at', ascending: false);
+      documents = List<Document>.from(
+        response.map((doc) => Document.fromJson(doc)),
+      );
+    } catch (e) {
+      success = false;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao carregar documentos'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    _fetchDocuments();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final navigator = Navigator.of(context);
-    const itemCount = 4;
     return Scaffold(
       body: Center(
         child: Padding(
@@ -20,119 +70,75 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               const HistocrTitle(),
-              const SizedBox(height: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Últimas Transcrições:',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      ListView.separated(
-                        padding: const EdgeInsets.all(0),
-                        shrinkWrap: true,
-                        itemCount: 3,
-                        itemBuilder: (context, _) => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: LastTranscriptsItem(
-                            imageUrl: 'imageUrl',
-                            title: 'Decreto 127',
-                            description:
-                                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut vel nisi vitae est molestie vestibulum ac ac risus. Praesent tincidunt molestie urna, nec auctor dolor interdum ut.',
-                          ),
-                        ),
-                        separatorBuilder: (BuildContext context, int _) =>
-                            const Divider(
-                          color: primaryColor,
-                          height: 4,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      if (itemCount > 3)
-                        TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            'Ver mais',
+              loading
+                  ? const LoadingIndicator()
+                  : Visibility(
+                      visible: documents.isNotEmpty,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          Text(
+                            'Últimas Transcrições:',
                             style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: secondaryColorDark,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  ScreenWidthButton(
-                    label: 'Iniciar Chat',
-                    onPressed: () => navigator.pushNamed(Routes.chat),
-                    color: secondaryColor,
-                  ),
-                  const SizedBox(height: 8),
-                  ScreenWidthButton(
-                    label: 'Configurações da Conta',
-                    onPressed: () {},
-                  ),
-                ],
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          ListView.separated(
+                            padding: const EdgeInsets.all(0),
+                            shrinkWrap: true,
+                            itemCount: documents.length,
+                            itemBuilder: (context, index) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: LastTranscriptsItem(
+                                document: documents[index],
+                              ),
+                            ),
+                            separatorBuilder: (BuildContext context, int _) =>
+                                const Divider(
+                              color: primaryColor,
+                              height: 4,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () =>
+                                  navigator.pushNamed(Routes.history),
+                              child: Text(
+                                'Ver mais',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: secondaryColorDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+              const SizedBox(height: 24),
+              ScreenWidthButton(
+                label: 'Iniciar Chat',
+                onPressed: () => navigator.pushNamed(Routes.chat),
+                color: secondaryColor,
+              ),
+              const SizedBox(height: 8),
+              ScreenWidthButton(
+                label: 'Configurações da Conta',
+                onPressed: () {},
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class LastTranscriptsItem extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String description;
-
-  const LastTranscriptsItem(
-      {super.key,
-      required this.imageUrl,
-      required this.title,
-      required this.description});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 84,
-          height: 84,
-          color: Colors.grey.shade300,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

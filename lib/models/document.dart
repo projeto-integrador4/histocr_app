@@ -5,6 +5,7 @@ class Document {
   final String? correctedText;
   int? rating;
   final String? imageUrl;
+  final DateTime updatedAt;
 
   Document(
       {required this.id,
@@ -12,7 +13,7 @@ class Document {
       required this.originalText,
       required this.correctedText,
       required this.rating,
-      required this.imageUrl});
+      required this.imageUrl, required this.updatedAt});
 
   factory Document.fromJson(Map<String, dynamic> json) {
     return Document(
@@ -22,6 +23,7 @@ class Document {
       correctedText: json['transcripted_text'],
       rating: json['rating']?.toInt(),
       imageUrl: json['storage_object_path'],
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 }

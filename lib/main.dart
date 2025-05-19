@@ -4,6 +4,7 @@ import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/screens/chat_screen.dart';
 import 'package:histocr_app/screens/complete_profile_screen.dart';
+import 'package:histocr_app/screens/history_screen.dart';
 import 'package:histocr_app/screens/home_screen.dart';
 import 'package:histocr_app/screens/login_screen.dart';
 import 'package:histocr_app/theme/theme.dart';
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
         Routes.login: (context) => const LoginScreen(),
         Routes.completeProfile: (context) => const CompleteProfileScreen(),
         Routes.chat: (context) => const ChatScreen(),
+        Routes.history: (context) => const HistoryScreen(),
       },
       initialRoute:
           supabase.auth.currentSession == null ? Routes.login : Routes.home,

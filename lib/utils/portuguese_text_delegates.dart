@@ -24,9 +24,7 @@ class PortugueseAssetPickerTextDelegate extends AssetPickerTextDelegate {
   String get goToSystemSettings => 'Ir para as configurações do sistema';
 }
 
-class PortugueseCameraPickerTextDelegate
-    extends CameraPickerTextDelegate {
- 
+class PortugueseCameraPickerTextDelegate extends CameraPickerTextDelegate {
   @override
   String get confirm => 'Confirmar';
 
@@ -41,5 +39,4 @@ class PortugueseCameraPickerTextDelegate
 
   @override
   String get saving => 'Salvando...';
-  
 }

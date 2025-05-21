@@ -7,7 +7,8 @@ import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 class CustomCameraPickerState extends CameraPickerState {
   List<File> images = [];
-  CustomCameraPickerState({required this.images});
+  final int maxAssets;
+  CustomCameraPickerState({required this.maxAssets});
 
   @override
   Widget buildCameraPreview({
@@ -36,6 +37,13 @@ class CustomCameraPickerState extends CameraPickerState {
             ),
           ),
         ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Visibility(
+            visible: images.length >= maxAssets,
+            child: Text("Você pode adicionar até $maxAssets imagens."),
+          ),
+        )
       ],
     );
   }
@@ -45,9 +53,10 @@ class CustomCameraPickerState extends CameraPickerState {
     required XFile file,
     required CameraPickerViewType viewType,
   }) async {
+    //TODO tá adicionando a imagem na lista quando eu clico no preview 
     final File imageFile = File(file.path);
     setState(() {
-      if (!images.contains(imageFile)) {
+      if (!images.contains(imageFile) && images.length < maxAssets) {
         images.add(imageFile);
       }
     });
@@ -63,6 +72,19 @@ class CustomCameraPickerState extends CameraPickerState {
       ),
     );
     return result;
+  }
+
+  @override
+  Widget buildCaptureButton(BuildContext context, BoxConstraints constraints) {
+    final isDisabled = images.length >= maxAssets;
+
+    return IgnorePointer(
+      ignoring: isDisabled,
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0, // Visually indicate disabled state
+        child: super.buildCaptureButton(context, constraints),
+      ),
+    );
   }
 
   Widget buildMiniaturePreview(File image) {

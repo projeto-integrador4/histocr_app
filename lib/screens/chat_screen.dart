@@ -32,7 +32,7 @@ class ChatScreen extends StatelessWidget {
           final p when p.isAll => 'Recentes',
           _ => path.name,
         },
-        provider: DefaultAssetPickerProvider(),
+        provider: DefaultAssetPickerProvider(maxAssets: 10),
         initialPermission: PermissionState.authorized,
       ),
     );
@@ -51,7 +51,7 @@ class ChatScreen extends StatelessWidget {
   void _pickImagesFromCamera(BuildContext context) async {
     await CameraPicker.pickFromCamera(
       context,
-      createPickerState: () => CustomCameraPickerState(images: []),
+      createPickerState: () => CustomCameraPickerState(maxAssets: 10),
       pickerConfig: CameraPickerConfig(
         textDelegate: PortugueseCameraPickerTextDelegate(),
       ),
@@ -97,7 +97,8 @@ class ChatScreen extends StatelessWidget {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           final provider = Provider.of<ChatProvider>(context, listen: false);
-          provider.clearMessages();
+          provider.clear();
+          provider.document = null;
         }
       },
       child: ScaffoldWithReturnButton(

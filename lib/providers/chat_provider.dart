@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/models/document.dart';
+import 'package:histocr_app/models/image_transcription_request.dart';
+import 'package:histocr_app/models/transcription_request.dart';
 import 'package:histocr_app/providers/base_provider.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 
@@ -12,52 +14,44 @@ class ChatProvider extends BaseProvider {
   ];
   Document? document;
 
-  void addMessage(ChatMessage message) {
-    messages.insert(0, message);
-    notifyListeners();
+  // --- Public API ---
+
+  @override
+  void setLoading(bool status) {
+    if (status) {
+      _addTypingMessage();
+    } else {
+      _removeTypingMessage();
+    }
+    super.setLoading(status);
   }
 
-  void addUserMessages(List<File> images) {
-    if (images.isEmpty) return;
-    final userMessages = images
-        .map((image) => ChatMessage(image: image, isUserMessage: true))
-        .toList();
-    userMessages.forEach(addMessage);
-
-    getTranscription();
-  }
-
-  void addResponseMessages() {
-    final responseMessages = [
-      ChatMessage(
-          textContent: document?.originalText,
-          type: PredefinedMessageType.transcription),
-      ChatMessage.messagefromType(PredefinedMessageType.rating),
-      ChatMessage.messagefromType(PredefinedMessageType.correction),
-      ChatMessage.messagefromType(PredefinedMessageType.editName),
-    ];
-    responseMessages.forEach(addMessage);
-  }
-
-  void clearMessages() {
+  void clear() {
     messages.clear();
-    addMessage(ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
+    document = null;
+    _addMessage(
+        ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
     notifyListeners();
   }
 
-  void getTranscription() async {
+  void getTranscription(List<File> images) async {
+    if (images.isEmpty) return;
+    _addUserMessages(images);
+
     try {
-      final response =
-          await supabase.from('documents').select().limit(1).single();
-      document = Document.fromJson(response);
-      addResponseMessages();
+      setLoading(true);
+
+    
+      _addResponseMessages();
     } catch (e) {
-      addMessage(
+      _addMessage(
         ChatMessage(
           textContent:
-              'Ocorreu um erro $e ao fazer a sua transcrição, tente novamente.',
+              'Ocorreu um erro $e ao processar a imagem, tente novamente.',
         ),
       );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -70,12 +64,64 @@ class ChatProvider extends BaseProvider {
       document!.rating = rating;
       notifyListeners();
     } catch (e) {
-      addMessage(
+      _addMessage(
         ChatMessage(
           textContent:
               'Ocorreu um erro $e ao atualizar a sua avaliação, tente novamente.',
         ),
       );
     }
+  }
+
+  // --- Private helpers ---
+
+  void _addMessage(ChatMessage message) {
+    messages.insert(0, message);
+    notifyListeners();
+  }
+
+  void _addUserMessages(List<File> images) {
+    final userMessages = images
+        .map((image) => ChatMessage(image: image, isUserMessage: true))
+        .toList();
+    userMessages.forEach(_addMessage);
+  }
+
+  void _addResponseMessages() {
+    final responseMessages = [
+      ChatMessage(
+        textContent: document?.originalText,
+        type: PredefinedMessageType.transcription,
+      ),
+      ChatMessage.messagefromType(PredefinedMessageType.rating),
+      ChatMessage.messagefromType(PredefinedMessageType.correction),
+      ChatMessage.messagefromType(PredefinedMessageType.editName),
+    ];
+    responseMessages.forEach(_addMessage);
+  }
+
+  void _addTypingMessage() {
+    messages.insert(
+      0,
+      ChatMessage.messagefromType(PredefinedMessageType.typing),
+    );
+  }
+
+  void _removeTypingMessage() {
+    messages.removeWhere(
+      (message) => message.type == PredefinedMessageType.typing,
+    );
+  }
+
+  Future<TranscriptionRequest> _buildFunctionRequest({
+    required List<File> images,
+  }) async {
+    final imageTranscriptionRequests = await Future.wait(
+      images.map((image) => ImageTranscriptionRequest.fromFile(image)),
+    );
+
+    return TranscriptionRequest(
+      images: imageTranscriptionRequests,
+    );
   }
 }

@@ -13,10 +13,11 @@ class LastTranscriptsItem extends StatelessWidget {
       this.isOnHomeScreen = true,
       this.onTap,
       required this.document});
-  
+
   String _getTimeAgo() {
     final now = DateTime.now();
-    final difference = now.difference(document.updatedAt);
+    // final difference = now.difference(document.updatedAt);
+    final difference = now.difference(now);
     if (difference.inMinutes < 60) {
       return 'Há ${difference.inMinutes} minutos';
     } else if (difference.inHours < 24) {
@@ -36,9 +37,10 @@ class LastTranscriptsItem extends StatelessWidget {
           SizedBox(
             width: isOnHomeScreen ? 84 : 100,
             height: isOnHomeScreen ? 84 : 100,
-            child: document.imageUrl != null
-                ? CachedNetworkImage(imageUrl: document.imageUrl!)
-                : null,
+            // child: document.imageUrls != null
+            //     ? CachedNetworkImage(imageUrl: document.imageUrls!)
+            //     : null,
+            child: SizedBox.shrink(),
           ),
           const SizedBox(width: 8),
           Expanded(

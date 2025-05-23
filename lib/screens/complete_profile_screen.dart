@@ -4,6 +4,7 @@ import 'package:histocr_app/components/histocr_title.dart';
 import 'package:histocr_app/components/occupation_dropdown.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
 import 'package:histocr_app/main.dart';
+import 'package:histocr_app/models/occupation.dart';
 import 'package:histocr_app/utils/routes.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -13,28 +14,38 @@ class CompleteProfileScreen extends StatefulWidget {
   State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-//TODO ver ngc do teclado quando passa pra outra página dar render overflow
+
 class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final TextEditingController otherOccupationController =
       TextEditingController();
-  String? selectedOccupation;
+  Occupation? selectedOccupation;
   bool loading = false;
+  List<Occupation> occupations = [];
 
   Future<bool> _updateOccupation() async {
     bool success = true;
-    final String? occupation = (selectedOccupation == "Outro" &&
-            otherOccupationController.text.isNotEmpty)
-        ? otherOccupationController.text.trim()
-        : selectedOccupation;
+    final Occupation? occupation = selectedOccupation;
+    final String? otherOccupation = otherOccupationController.text.isNotEmpty
+        ? otherOccupationController.text
+        : null;
 
     setState(() {
       loading = true;
     });
 
     try {
-      await supabase.from('users').update({
-        'job': occupation,
-      }).eq('id', supabase.auth.currentUser!.id);
+      final updateData = <String, dynamic>{
+        'job_id': occupation?.id,
+      };
+
+      if (occupation?.name == "Outro" && otherOccupation != null) {
+        updateData['custom_job_name'] = otherOccupation;
+      }
+
+      await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', supabase.auth.currentUser!.id);
     } catch (e) {
       success = false;
     } finally {
@@ -45,10 +56,36 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     return success;
   }
 
+  Future<void> _fetchOccupations() async {
+    try {
+      final response = await supabase
+          .from('jobs')
+          .select()
+          .order('name', ascending: true);
+
+      if (response.isEmpty) {
+        return;
+      }
+
+      setState(() {
+        occupations = List<Occupation>.from(
+            response.map((job) => Occupation.fromJson(job)));
+      });
+    } catch (e) {
+      return;
+    }
+  }
+
+  @override
+  void initState() {
+    _fetchOccupations();
+    super.initState();
+  }
+
   @override
   void dispose() {
-    super.dispose();
     otherOccupationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -96,12 +133,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   OccupationDropdown(
+                    occupations: occupations,
                     onChanged: (value) => setState(() {
                       selectedOccupation = value;
                     }),
                   ),
                   const SizedBox(height: 8),
-                  if (selectedOccupation == "Outro")
+                  if (selectedOccupation?.name == "Outro")
                     TextField(
                       decoration: const InputDecoration(
                         hintText: "Escreva sua profissão",

@@ -1,43 +1,39 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:histocr_app/models/occupation.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 
 class OccupationDropdown extends StatefulWidget {
-  final ValueChanged<String?>? onChanged;
-  const OccupationDropdown({super.key, this.onChanged});
+  final ValueChanged<Occupation?>? onChanged;
+  final List<Occupation> occupations;
+  const OccupationDropdown({super.key, this.onChanged, required this.occupations});
 
   @override
   State<OccupationDropdown> createState() => _OccupationDropdownState();
 }
 
 class _OccupationDropdownState extends State<OccupationDropdown> {
-  String? selectedValue;
+  Occupation? selectedValue;
 
   @override
   Widget build(BuildContext context) {
-    final dropdownItems = [
-      'Arquivista',
-      'Bibliotecário(a)',
-      'Historiador(a)',
-      'Museólogo(a)',
-      'Outro',
-    ];
+    final List<Occupation> dropdownItems = widget.occupations;
 
-    List<DropdownMenuItem<String>> addDividersAfterItems(List<String> items) {
-      final List<DropdownMenuItem<String>> menuItems = [];
-      for (final String item in items) {
+    List<DropdownMenuItem<Occupation>> addDividersAfterItems(List<Occupation> items) {
+      final List<DropdownMenuItem<Occupation>> menuItems = [];
+      for (final item in items) {
         menuItems.addAll(
           [
-            DropdownMenuItem<String>(
+            DropdownMenuItem<Occupation>(
               value: item,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(item),
+                child: Text(item.name),
               ),
             ),
             //If it's last item, we will not add Divider after it.
             if (item != items.last)
-              const DropdownMenuItem<String>(
+              const DropdownMenuItem<Occupation>(
                 enabled: false,
                 child: Divider(
                   color: Color(0x80606060),
@@ -63,7 +59,7 @@ class _OccupationDropdownState extends State<OccupationDropdown> {
       return itemsHeights;
     }
 
-    return DropdownButton2<String>(
+    return DropdownButton2<Occupation>(
       buttonStyleData: ButtonStyleData(
         width: double.infinity,
         height: 56,

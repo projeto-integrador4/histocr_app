@@ -55,12 +55,12 @@ class AuthProvider extends BaseProvider {
     try {
       final response = await supabase
           .from('users')
-          .select('job')
+          .select('job_id')
           .eq('id', user.id)
           .limit(1)
           .single();
 
-      hasJob = response['job'] != null;
+      hasJob = response['job_id'] != null;
     } catch (e) {
       throw 'Error fetching user job: $e';
     }

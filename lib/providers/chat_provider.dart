@@ -41,7 +41,14 @@ class ChatProvider extends BaseProvider {
     try {
       setLoading(true);
 
-    
+      final request = await _buildFunctionRequest(images: images);
+      final response = await supabase.functions.invoke(
+        'gemini',
+        body: request.toJson(),
+      );
+
+      document = Document.fromTranscriptionResponseJson(response.data);
+
       _addResponseMessages();
     } catch (e) {
       _addMessage(

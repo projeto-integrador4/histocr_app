@@ -28,7 +28,7 @@ class Document {
     );
   }
 
-  static Document fromJsonTranscriptionResponse(json) {
+  static Document fromTranscriptionResponseJson(json) {
     return Document(
       id: json['documentId'],
       name: json['document_name'],

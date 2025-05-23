@@ -67,7 +67,7 @@ class ChatScreen extends StatelessWidget {
 
   Widget _buildUserMessage(ChatMessage message) {
     return ChatBubble(
-      isUserMessage: true,
+      isUserMessage: message.isUserMessage,
       child: message.image == null
           ? Text(message.textContent ?? '')
           : Image.file(message.image!),

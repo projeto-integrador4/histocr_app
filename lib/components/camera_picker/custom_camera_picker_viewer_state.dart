@@ -78,7 +78,7 @@ class CustomCameraPickerViewerState extends CameraPickerViewerState {
   Future<void> createAssetEntityAndPop() async {
     //TODO quando aperto o botão de confirmar, ele não tá saindo da camera, so do preview
     final provider = Provider.of<ChatProvider>(context, listen: false);
-    provider.addUserMessages(images);
+    provider.getTranscription(images);
     super.createAssetEntityAndPop();
   }
 

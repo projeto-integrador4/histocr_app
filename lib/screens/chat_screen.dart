@@ -6,6 +6,7 @@ import 'package:histocr_app/components/camera_picker/custom_camera_picker_state.
 import 'package:histocr_app/components/chat/chat_bubble.dart';
 import 'package:histocr_app/components/chat/predefined_messages_widgets.dart';
 import 'package:histocr_app/components/chat/send_picture_button.dart';
+import 'package:histocr_app/components/chat/typing_indicator_message.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
@@ -45,7 +46,7 @@ class ChatScreen extends StatelessWidget {
         }
       }
     }
-    provider.addUserMessages(images);
+    provider.getTranscription(images);
   }
 
   void _pickImagesFromCamera(BuildContext context) async {
@@ -60,17 +61,20 @@ class ChatScreen extends StatelessWidget {
 
   Widget _buildMessageContent(ChatMessage message, BuildContext context) {
     return message.type != null
-        ? _buildPredefinedMessageCont(message, context)
-        : _buildUserMessageContent(message);
+        ? _buildPredefinedMessage(message, context)
+        : _buildUserMessage(message);
   }
 
-  Widget _buildUserMessageContent(ChatMessage message) {
-    return message.image == null
-        ? Text(message.textContent ?? '')
-        : Image.file(message.image!);
+  Widget _buildUserMessage(ChatMessage message) {
+    return ChatBubble(
+      isUserMessage: true,
+      child: message.image == null
+          ? Text(message.textContent ?? '')
+          : Image.file(message.image!),
+    );
   }
 
-  Widget _buildPredefinedMessageCont(
+  Widget _buildPredefinedMessage(
       ChatMessage message, BuildContext context) {
     final type = message.type!;
     final provider = Provider.of<ChatProvider>(context);
@@ -84,10 +88,11 @@ class ChatScreen extends StatelessWidget {
         ),
       PredefinedMessageType.editName =>
         EditNameMessage(name: provider.document?.name ?? ''),
-      PredefinedMessageType.firstMessage => Text(type.text),
+      PredefinedMessageType.firstMessage => ChatBubble(child: Text(type.text)),
       PredefinedMessageType.transcription => TranscriptionMessage(
           transcription: provider.document?.originalText ?? '',
         ),
+      PredefinedMessageType.typing => const TypingIndicatorMessage(),
     };
   }
 
@@ -108,15 +113,12 @@ class ChatScreen extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                  child: ListView.builder(
+                  child: ListView.builder( //TODO animatedList
                     itemCount: provider.messages.length,
                     reverse: true,
-                    itemBuilder: (BuildContext context, int index) {
+                    itemBuilder: (context, index) {
                       final message = provider.messages[index];
-                      return ChatBubble(
-                        isUserMessage: message.isUserMessage,
-                        child: _buildMessageContent(message, context),
-                      );
+                      return _buildMessageContent(message, context);
                     },
                   ),
                 ),

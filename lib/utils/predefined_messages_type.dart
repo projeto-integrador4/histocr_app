@@ -4,6 +4,7 @@ enum PredefinedMessageType {
   correction,
   editName,
   transcription,
+  typing
 }
 
 extension PredefinedMessageTypeExtension on PredefinedMessageType {
@@ -17,7 +18,7 @@ extension PredefinedMessageTypeExtension on PredefinedMessageType {
         return "Você gostaria de corrigir os erros nessa transcrição?";
       case PredefinedMessageType.editName:
         return "Sua transcrição ficará salva como:";
-      case PredefinedMessageType.transcription:
+      default:
         return '';
     }
   }

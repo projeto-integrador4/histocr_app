@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:histocr_app/components/chat/chat_bubble.dart';
 import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/theme/app_colors.dart';
@@ -19,17 +20,19 @@ class RatingMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(PredefinedMessageType.rating.text),
-        const SizedBox(height: 8),
-        StarReview(
-          rating: rating,
-          size: 36,
-          onRatingChanged: onRatingChanged,
-        ),
-      ],
+    return ChatBubble(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(PredefinedMessageType.rating.text),
+          const SizedBox(height: 8),
+          StarReview(
+            rating: rating,
+            size: 36,
+            onRatingChanged: onRatingChanged,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -60,16 +63,17 @@ class CorrectionMessage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            CachedNetworkImage(
-              imageUrl: document.imageUrl!,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              errorWidget: (context, url, error) => const Icon(
-                Icons.error,
-                size: 36,
-              ),
-            ),
+            // CachedNetworkImage(
+            //   imageUrl: document.imageUrls!,
+            //   placeholder: (context, url) => const Center(
+            //     child: CircularProgressIndicator(),
+            //   ),
+            //   errorWidget: (context, url, error) => const Icon(
+            //     Icons.error,
+            //     size: 36,
+            //   ),
+            // ),
+            //TODO add carousel
             const SizedBox(height: 8),
             TextField(
               controller: transcriptionTextEditingController,
@@ -96,25 +100,27 @@ class CorrectionMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(PredefinedMessageType.correction.text),
-        const SizedBox(height: 8),
-        FilledButton(
-          onPressed: () => showModalBottomSheet(
-              isScrollControlled: true,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              context: context,
-              builder: (context) => _buildModalBottomSheet(context)),
-          style: FilledButton.styleFrom(backgroundColor: secondaryColor),
-          child: Text(
-            "Sim",
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+    return ChatBubble(
+      child: Column(
+        children: [
+          Text(PredefinedMessageType.correction.text),
+          const SizedBox(height: 8),
+          FilledButton(
+            onPressed: () => showModalBottomSheet(
+                isScrollControlled: true,
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                ),
+                context: context,
+                builder: (context) => _buildModalBottomSheet(context)),
+            style: FilledButton.styleFrom(backgroundColor: secondaryColor),
+            child: Text(
+              "Sim",
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -129,52 +135,54 @@ class TranscriptionMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(transcription),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            InkWell(
-              onTap: () => Clipboard.setData(
+    return ChatBubble(
+      child: Column(
+        children: [
+          Text(transcription),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              InkWell(
+                onTap: () => Clipboard.setData(
                   ClipboardData(text: transcription),
                 ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.copy_rounded,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "Copiar",
-                    style: GoogleFonts.inter(fontSize: 12),
-                  ),
-                ],
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.copy_rounded,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Copiar",
+                      style: GoogleFonts.inter(fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            InkWell(
-              onTap: () {
-                //TODO copy the transcription
-              },
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.description_rounded,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    "Google Docs",
-                    style: GoogleFonts.inter(fontSize: 12),
-                  ),
-                ],
+              InkWell(
+                onTap: () {
+                  //TODO google docs
+                },
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.description_rounded,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Google Docs",
+                      style: GoogleFonts.inter(fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -189,25 +197,27 @@ class EditNameMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(PredefinedMessageType.editName.text),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              onPressed: () {
-                //TODO edit the name
-              },
-              icon: const Icon(Icons.edit_rounded),
-            ),
-          ],
-        ),
-      ],
+    return ChatBubble(
+      child: Column(
+        children: [
+          Text(PredefinedMessageType.editName.text),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                onPressed: () {
+                  //TODO edit the name
+                },
+                icon: const Icon(Icons.edit_rounded),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -31,9 +31,9 @@ class Document {
   static Document fromTranscriptionResponseJson(json) {
     return Document(
       id: json['documentId'],
-      name: json['document_name'],
+      name: json['documentName'],
       originalText: json['transcribedText'],
-      imageUrls: json['uploadedFilePaths'],
+      imageUrls: (json['uploadedFilePaths'] as List).map((e) => e.toString()).toList(),
     );
   }
 }

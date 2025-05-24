@@ -74,8 +74,7 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPredefinedMessage(
-      ChatMessage message, BuildContext context) {
+  Widget _buildPredefinedMessage(ChatMessage message, BuildContext context) {
     final type = message.type!;
     final provider = Provider.of<ChatProvider>(context);
     return switch (type) {
@@ -85,12 +84,18 @@ class ChatScreen extends StatelessWidget {
         ),
       PredefinedMessageType.correction => CorrectionMessage(
           document: provider.document!,
+          onCorrectionSaved: (newCorrection) =>
+              provider.sendCorrection(newCorrection),
         ),
-      PredefinedMessageType.editName =>
-        EditNameMessage(name: provider.document?.name ?? ''),
+      PredefinedMessageType.editName => EditNameMessage(
+          name: provider.document?.name ?? '',
+          onNameChanged: (newName) => provider.updateDocumentName(newName),
+        ),
       PredefinedMessageType.firstMessage => ChatBubble(child: Text(type.text)),
       PredefinedMessageType.transcription => TranscriptionMessage(
-          transcription: provider.document?.originalText ?? '',
+          transcription: provider.document?.correctedText ??
+              provider.document?.originalText ??
+              '',
         ),
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
     };
@@ -113,7 +118,8 @@ class ChatScreen extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                  child: ListView.builder( //TODO animatedList
+                  child: ListView.builder(
+                    //TODO animatedList
                     itemCount: provider.messages.length,
                     reverse: true,
                     itemBuilder: (context, index) {

@@ -80,6 +80,42 @@ class ChatProvider extends BaseProvider {
     }
   }
 
+  void updateDocumentName(String name) async {
+    if (document?.id == null) return;
+    try {
+      await supabase
+          .from('documents')
+          .update({'document_name': name}).eq('id', document!.id);
+      document!.name = name;
+      notifyListeners();
+    } catch (e) {
+      _addMessage(
+        ChatMessage(
+          textContent:
+              'Ocorreu um erro $e ao atualizar o nome do seu documento, tente novamente.',
+        ),
+      );
+    }
+  }
+
+  void sendCorrection(String text) async {
+    try {
+      if (document?.id == null) return;
+      await supabase
+          .from('documents')
+          .update({'corrected_text': text}).eq('id', document!.id);
+      document!.correctedText = text;
+      notifyListeners();
+    } catch (e) {
+      _addMessage(
+        ChatMessage(
+          textContent:
+              'Ocorreu um erro $e ao atualizar a sua correção, tente novamente.',
+        ),
+      );
+    }
+  }
+
   // --- Private helpers ---
 
   void _addMessage(ChatMessage message) {

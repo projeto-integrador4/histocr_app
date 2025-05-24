@@ -1,10 +1,10 @@
 class Document {
   final String id;
-  final String name;
+  String name;
   final String originalText;
-  final String? correctedText;
+  String? correctedText;
   int? rating;
-  final List<String> imageUrls;
+  final List<String> uploadedFilePaths;
   final DateTime? updatedAt;
 
   Document(
@@ -13,7 +13,7 @@ class Document {
       required this.originalText,
       this.correctedText,
       this.rating,
-      required this.imageUrls,
+      required this.uploadedFilePaths,
       this.updatedAt});
 
   factory Document.fromJson(Map<String, dynamic> json) {
@@ -23,7 +23,7 @@ class Document {
       originalText: json['original_text'],
       correctedText: json['transcripted_text'],
       rating: json['rating']?.toInt(),
-      imageUrls: json['storage_object_path'],
+      uploadedFilePaths: json['storage_object_path'],
       updatedAt: DateTime.parse(json['updated_at']),
     );
   }
@@ -33,7 +33,8 @@ class Document {
       id: json['documentId'],
       name: json['documentName'],
       originalText: json['transcribedText'],
-      imageUrls: (json['uploadedFilePaths'] as List).map((e) => e.toString()).toList(),
+      uploadedFilePaths:
+          (json['uploadedFilePaths'] as List).map((e) => e.toString()).toList(),
     );
   }
 }

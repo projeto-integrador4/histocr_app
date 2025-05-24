@@ -6,6 +6,7 @@ import 'package:histocr_app/components/chat/chat_bubble.dart';
 import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/theme/app_colors.dart';
+import 'package:histocr_app/utils/image_helper.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 
 class RatingMessage extends StatelessWidget {
@@ -39,60 +40,73 @@ class RatingMessage extends StatelessWidget {
 
 class CorrectionMessage extends StatelessWidget {
   final Document document;
+  final Function(String)? onCorrectionSaved;
   late final TextEditingController transcriptionTextEditingController;
 
   CorrectionMessage({
     super.key,
     required this.document,
-  }) : transcriptionTextEditingController =
-            TextEditingController(text: document.originalText);
+    this.onCorrectionSaved,
+  }) : transcriptionTextEditingController = TextEditingController(
+            text: document.correctedText ?? document.originalText);
 
   Widget _buildModalBottomSheet(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                Icons.close,
-                size: 36,
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+        child: SingleChildScrollView(
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close,
+                  size: 36,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            // CachedNetworkImage(
-            //   imageUrl: document.imageUrls!,
-            //   placeholder: (context, url) => const Center(
-            //     child: CircularProgressIndicator(),
-            //   ),
-            //   errorWidget: (context, url, error) => const Icon(
-            //     Icons.error,
-            //     size: 36,
-            //   ),
-            // ),
-            //TODO add carousel
-            const SizedBox(height: 8),
-            TextField(
-              controller: transcriptionTextEditingController,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () {
-                //TODO send the correction
-                Navigator.pop(context);
-              },
-              style: FilledButton.styleFrom(backgroundColor: secondaryColor),
-              child: Text(
-                "Enviar",
-                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              const SizedBox(height: 8),
+              CachedNetworkImage(
+                imageUrl: getImageUrl(document.uploadedFilePaths[0]),
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                errorWidget: (context, url, error) => const Icon(
+                  Icons.error,
+                  size: 36,
+                ),
+                scale: 0.4,
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              TextField(
+                controller: transcriptionTextEditingController,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () {
+                  onCorrectionSaved?.call(
+                    transcriptionTextEditingController.text,
+                  );
+                  Navigator.pop(context);
+                },
+                style: FilledButton.styleFrom(backgroundColor: secondaryColor),
+                child: Text(
+                  "Enviar",
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -107,6 +121,7 @@ class CorrectionMessage extends StatelessWidget {
           const SizedBox(height: 8),
           FilledButton(
             onPressed: () => showModalBottomSheet(
+                clipBehavior: Clip.antiAlias,
                 isScrollControlled: true,
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -137,6 +152,7 @@ class TranscriptionMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChatBubble(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(transcription),
           const SizedBox(height: 8),
@@ -161,24 +177,24 @@ class TranscriptionMessage extends StatelessWidget {
                   ],
                 ),
               ),
-              InkWell(
-                onTap: () {
-                  //TODO google docs
-                },
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.description_rounded,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Google Docs",
-                      style: GoogleFonts.inter(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
+              // InkWell(
+              //   onTap: () {
+              //     //TODO google docs
+              //   },
+              //   child: Row(
+              //     children: [
+              //       const Icon(
+              //         Icons.description_rounded,
+              //         size: 16,
+              //       ),
+              //       const SizedBox(width: 4),
+              //       Text(
+              //         "Google Docs",
+              //         style: GoogleFonts.inter(fontSize: 12),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ],
@@ -189,11 +205,44 @@ class TranscriptionMessage extends StatelessWidget {
 
 class EditNameMessage extends StatelessWidget {
   final String name;
+  final Function(String)? onNameChanged;
 
   const EditNameMessage({
     super.key,
     required this.name,
+    this.onNameChanged,
   });
+
+  Widget _buildEditNameDialog(BuildContext context) {
+    final TextEditingController nameController =
+        TextEditingController(text: name);
+
+    return AlertDialog(
+      title: Text(
+        'Editar nome',
+        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+      ),
+      content: TextField(
+        controller: nameController,
+        decoration: const InputDecoration(
+          labelText: "Nome",
+        ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () {
+            onNameChanged?.call(nameController.text);
+            Navigator.pop(context);
+          },
+          style: FilledButton.styleFrom(backgroundColor: secondaryColor),
+          child: Text(
+            "Salvar",
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,13 +253,18 @@ class EditNameMessage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                name,
-                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  name,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                ),
               ),
               IconButton(
                 onPressed: () {
-                  //TODO edit the name
+                  showDialog(
+                    context: context,
+                    builder: (context) => _buildEditNameDialog(context),
+                  );
                 },
                 icon: const Icon(Icons.edit_rounded),
               ),

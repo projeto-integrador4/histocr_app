@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:histocr_app/main.dart';
 
 Future<Uint8List> compressImage(File image) async {
   // Apply if image size > 50 MB
@@ -16,4 +17,8 @@ Future<Uint8List> compressImage(File image) async {
     );
     return result!;
   }
+}
+
+String getImageUrl(String uploadedPath) {
+  return supabase.storage.from('documents').getPublicUrl(uploadedPath);
 }

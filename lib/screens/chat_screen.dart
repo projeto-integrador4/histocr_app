@@ -126,7 +126,6 @@ class _ChatScreenState extends State<ChatScreen> {
         if (didPop) {
           final provider = Provider.of<ChatProvider>(context, listen: false);
           provider.clear();
-          provider.document = null;
         }
       },
       child: ScaffoldWithReturnButton(

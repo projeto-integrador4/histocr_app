@@ -15,6 +15,6 @@ class ChatMessage {
           'Either text, image or type must be provided.',
         );
 
-  static ChatMessage messagefromType(PredefinedMessageType type) =>
+  factory ChatMessage.messagefromType(PredefinedMessageType type) =>
       ChatMessage(type: type);
 }

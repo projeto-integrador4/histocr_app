@@ -6,8 +6,10 @@ import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
 import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/document.dart';
+import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/routes.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,14 +18,15 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
   List<Document> documents = [];
   bool success = false;
   bool loading = false;
+  bool _shouldFetchOnReturn = false;
 
   void _fetchDocuments() async {
-    success = true;
     setState(() {
+      success = true;
       loading = true;
     });
 
@@ -32,12 +35,23 @@ class _HomeScreenState extends State<HomeScreen> {
           .from('documents')
           .select()
           .eq('user_id', supabase.auth.currentUser!.id)
+          .limit(3)
           .order('updated_at', ascending: false);
-      documents = List<Document>.from(
-        response.map((doc) => Document.fromJson(doc)),
-      );
+
+      setState(() {
+        if (response.isEmpty) {
+          documents = [];
+          return;
+        }
+        documents = List<Document>.from(
+          response.map((doc) => Document.fromJson(doc)),
+        );
+      });
     } catch (e) {
-      success = false;
+      setState(() {
+        success = false;
+        documents = [];
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -57,6 +71,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     _fetchDocuments();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Only fetch if flag was set
+    if (_shouldFetchOnReturn) {
+      _fetchDocuments();
+      _shouldFetchOnReturn = false;
+    }
   }
 
   @override
@@ -109,8 +144,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () =>
-                                  navigator.pushNamed(Routes.history),
+                              onPressed: () async {
+                                final shouldChange = await Navigator.pushNamed(
+                                    context, Routes.history) as bool?;
+                                if (shouldChange != null && shouldChange) {
+                                  _shouldFetchOnReturn = true;
+                                }
+                              },
                               child: Text(
                                 'Ver mais',
                                 style: GoogleFonts.inter(
@@ -127,13 +167,22 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               ScreenWidthButton(
                 label: 'Iniciar Chat',
-                onPressed: () => navigator.pushNamed(Routes.chat),
+                onPressed: () async {
+                  final shouldChange =
+                      await navigator.pushNamed(Routes.chat) as bool?;
+                  if (shouldChange != null && shouldChange) {
+                    _shouldFetchOnReturn = true;
+                  }
+                },
                 color: secondaryColor,
               ),
               const SizedBox(height: 8),
               ScreenWidthButton(
                 label: 'Configurações da Conta',
-                onPressed: () {},
+                onPressed: () {
+                  Provider.of<AuthProvider>(context, listen: false).fetchUserInfo();
+                  navigator.pushNamed(Routes.accountSettings);
+                },
               ),
             ],
           ),

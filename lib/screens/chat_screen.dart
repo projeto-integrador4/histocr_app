@@ -70,7 +70,10 @@ class ChatScreen extends StatelessWidget {
       isUserMessage: message.isUserMessage,
       child: message.image == null
           ? Text(message.textContent ?? '')
-          : Image.file(message.image!),
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(message.image!),
+            ),
     );
   }
 
@@ -93,9 +96,7 @@ class ChatScreen extends StatelessWidget {
         ),
       PredefinedMessageType.firstMessage => ChatBubble(child: Text(type.text)),
       PredefinedMessageType.transcription => TranscriptionMessage(
-          transcription: provider.document?.correctedText ??
-              provider.document?.originalText ??
-              '',
+          transcription: provider.document?.transcription ?? '',
         ),
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
     };
@@ -112,6 +113,7 @@ class ChatScreen extends StatelessWidget {
         }
       },
       child: ScaffoldWithReturnButton(
+        popResult: Provider.of<ChatProvider>(context).didAddDocument,
         child: Consumer<ChatProvider>(
           builder: (context, provider, child) => Column(
             children: [

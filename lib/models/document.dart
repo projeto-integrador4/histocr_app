@@ -20,15 +20,15 @@ class Document {
     return Document(
       id: json['id'],
       name: json['document_name'],
-      originalText: json['original_text'],
-      correctedText: json['transcripted_text'],
+      originalText: json['transcripted_text'],
+      correctedText: json['corrected_text'],
       rating: json['rating']?.toInt(),
-      uploadedFilePaths: json['storage_object_path'],
+      uploadedFilePaths: (json['storage_object_path'] as List).map((e) => e.toString()).toList(),
       updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 
-  static Document fromTranscriptionResponseJson(json) {
+  factory Document.fromTranscriptionResponseJson(json) {
     return Document(
       id: json['documentId'],
       name: json['documentName'],
@@ -37,4 +37,6 @@ class Document {
           (json['uploadedFilePaths'] as List).map((e) => e.toString()).toList(),
     );
   }
+
+  String get transcription => correctedText ?? originalText;
 }

@@ -4,4 +4,6 @@ class Routes {
   static const String completeProfile = '/complete-profile';
   static const String chat = '/chat';
   static const String history = '/history';
+  static const String documentDetail = '/document-detail';
+  static const String accountSettings = '/account-settings';
 }

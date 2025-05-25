@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:histocr_app/main.dart';
 
-Future<Uint8List> compressImage(File image) async {
+Future<Uint8List> compressAndEncodeImage(File image) async {
   // Apply if image size > 50 MB
   if (image.lengthSync() < 50 * 1024 * 1024) {
     return await image.readAsBytes();

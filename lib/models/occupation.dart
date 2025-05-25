@@ -7,4 +7,8 @@ class Occupation {
   factory Occupation.fromJson(Map<String, dynamic> json) {
     return Occupation(id: json['id'], name: json['name']);
   }
+  
+  factory Occupation.fromUserInfoJson(Map<String, dynamic> json) {
+    return Occupation(id: json['job_id'], name: json['job_name']);
+  }
 }

@@ -1,8 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/chat/chat_bubble.dart';
+import 'package:histocr_app/components/edit_name_dialog.dart';
+import 'package:histocr_app/components/network_image_with_fallback.dart';
 import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/theme/app_colors.dart';
@@ -47,8 +48,8 @@ class CorrectionMessage extends StatelessWidget {
     super.key,
     required this.document,
     this.onCorrectionSaved,
-  }) : transcriptionTextEditingController = TextEditingController(
-            text: document.correctedText ?? document.originalText);
+  }) : transcriptionTextEditingController =
+            TextEditingController(text: document.transcription);
 
   Widget _buildModalBottomSheet(BuildContext context) {
     return Padding(
@@ -74,15 +75,8 @@ class CorrectionMessage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              CachedNetworkImage(
-                imageUrl: getImageUrl(document.uploadedFilePaths[0]),
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                errorWidget: (context, url, error) => const Icon(
-                  Icons.error,
-                  size: 36,
-                ),
+              NetworkImageWithFallback(
+                path: getImageUrl(document.uploadedFilePaths[0]),
                 scale: 0.4,
               ),
               const SizedBox(height: 8),
@@ -213,37 +207,6 @@ class EditNameMessage extends StatelessWidget {
     this.onNameChanged,
   });
 
-  Widget _buildEditNameDialog(BuildContext context) {
-    final TextEditingController nameController =
-        TextEditingController(text: name);
-
-    return AlertDialog(
-      title: Text(
-        'Editar nome',
-        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
-      ),
-      content: TextField(
-        controller: nameController,
-        decoration: const InputDecoration(
-          labelText: "Nome",
-        ),
-      ),
-      actions: [
-        FilledButton(
-          onPressed: () {
-            onNameChanged?.call(nameController.text);
-            Navigator.pop(context);
-          },
-          style: FilledButton.styleFrom(backgroundColor: secondaryColor),
-          child: Text(
-            "Salvar",
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChatBubble(
@@ -260,12 +223,14 @@ class EditNameMessage extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => _buildEditNameDialog(context),
-                  );
-                },
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (context) => EditNameDialog(
+                      name: name,
+                      onNameChanged: (newName) {
+                        onNameChanged?.call(newName);
+                      }),
+                ),
                 icon: const Icon(Icons.edit_rounded),
               ),
             ],

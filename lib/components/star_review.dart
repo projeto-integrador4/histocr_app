@@ -27,7 +27,7 @@ class StarReview extends StatelessWidget {
 
   Widget buildStar(BuildContext context, int index) {
     Icon icon = index >= rating ? starOutline : starSolid;
-    return InkResponse(
+    return GestureDetector(
       onTap: () {
         onRatingChanged?.call(index + 1);
       },
@@ -38,7 +38,6 @@ class StarReview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         5,
         (index) => buildStar(context, index),

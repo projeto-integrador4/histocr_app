@@ -15,7 +15,8 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  List<Document> documents = [];
+  List<Document> allDocuments = [];
+  List<Document> filteredDocuments = [];
   bool success = true;
   bool loading = false;
 
@@ -30,9 +31,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           .select()
           .eq('user_id', supabase.auth.currentUser!.id)
           .order('updated_at', ascending: false);
-      documents = List<Document>.from(
+      allDocuments = List<Document>.from(
         response.map((doc) => Document.fromJson(doc)),
       );
+      filteredDocuments = allDocuments;
     } catch (e) {
       success = false;
       if (mounted) {
@@ -64,7 +66,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         height: 40,
         width: double.infinity,
         child: TextField(
-          //TODO implement search
           decoration: InputDecoration(
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
@@ -76,17 +77,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               borderSide: BorderSide.none,
             ),
           ),
+          onChanged: (value) => setState(() {
+            filteredDocuments = allDocuments
+                .where((doc) => doc.name.toLowerCase().contains(value))
+                .toList();
+          }),
         ),
       ),
       child: loading
           ? const Center(child: LoadingIndicator())
-          : success
+          : filteredDocuments.isNotEmpty
               ? ListView.separated(
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 8.0, horizontal: 16),
                     child: LastTranscriptsItem(
-                      document: documents[index],
+                      document: filteredDocuments[index],
                       isOnHomeScreen: false,
                     ),
                   ),
@@ -94,17 +100,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     color: primaryColor,
                     height: 4,
                   ),
-                  itemCount: documents.length,
+                  itemCount: filteredDocuments.length,
                 )
-              : const Center(
-                  child: Text(
-                    'Nenhum documento encontrado',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              : const Center(child: Text('Nenhum documento encontrado')),
     );
   }
 }

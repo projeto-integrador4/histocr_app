@@ -21,10 +21,10 @@ class ImageTranscriptionRequest {
       'mimeType': mimeType,
     };
   }
-  
+
   static Future<ImageTranscriptionRequest> fromFile(File image) async {
     final fileName = image.path.split('/').last;
-    final uint8List = await compressImage(image);
+    final uint8List = await compressAndEncodeImage(image);
     final mimeType = 'image/${fileName.split('.').last}';
 
     return ImageTranscriptionRequest(

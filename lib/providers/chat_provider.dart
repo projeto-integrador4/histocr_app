@@ -13,6 +13,7 @@ class ChatProvider extends BaseProvider {
     ChatMessage.messagefromType(PredefinedMessageType.firstMessage)
   ];
   Document? document;
+  bool didAddDocument = false;
 
   // --- Public API ---
 
@@ -29,6 +30,7 @@ class ChatProvider extends BaseProvider {
   void clear() {
     messages.clear();
     document = null;
+    didAddDocument = false;
     _addMessage(
         ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
     notifyListeners();
@@ -48,7 +50,7 @@ class ChatProvider extends BaseProvider {
       );
 
       document = Document.fromTranscriptionResponseJson(response.data);
-
+      didAddDocument = true;
       _addResponseMessages();
     } catch (e) {
       _addMessage(

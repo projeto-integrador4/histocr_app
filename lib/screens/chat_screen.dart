@@ -59,7 +59,7 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMessageContent(ChatMessage message, BuildContext context) {
+  Widget _buildMessage(ChatMessage message, BuildContext context) {
     return message.type != null
         ? _buildPredefinedMessage(message, context)
         : _buildUserMessage(message);

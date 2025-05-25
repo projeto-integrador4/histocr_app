@@ -25,7 +25,95 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      final permission = await checkPermission();
+      if (permission == PermissionState.authorized) {
+        _pickImagesFromGallery();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          final provider = Provider.of<ChatProvider>(context, listen: false);
+          provider.clear();
+        }
+      },
+      child: ScaffoldWithReturnButton(
+        popResult: Provider.of<ChatProvider>(context).didAddDocument,
+        child: Consumer<ChatProvider>(
+          builder: (context, provider, child) => Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                  child: ListView.builder(
+                    //TODO animatedList
+                    itemCount: provider.messages.length,
+                    reverse: true,
+                    itemBuilder: (context, index) {
+                      final message = provider.messages[index];
+                      return _buildMessage(message, context);
+                    },
+                  ),
+                ),
+              ),
+              Container(
+                color: primaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  children: [
+                    SendPictureButton(
+                      label: 'Tirar foto',
+                      icon: Icons.camera_alt_rounded,
+                      onPressed: () => _pickImagesFromCamera(),
+                    ),
+                    const SizedBox(height: 4),
+                    SendPictureButton(
+                      label: 'Escolher da galeria',
+                      icon: Icons.photo_library_rounded,
+                      onPressed: () => _handleOpenGallery(provider),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleOpenGallery(ChatProvider provider) {
+    checkPermission().then((permission) async {
+      if (permission == PermissionState.denied) {
+        await provider.addPermissionTip();
+        await requestPermission();
+      } else {
+        _pickImagesFromGallery();
+      }
+    });
+  }
+
   void _pickImagesFromGallery() async {
     final provider = Provider.of<ChatProvider>(context, listen: false);
     final images = <File>[];
@@ -117,69 +205,5 @@ class _ChatScreenState extends State<ChatScreen> {
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
       _ => ChatBubble(child: Text(type.text)),
     };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          final provider = Provider.of<ChatProvider>(context, listen: false);
-          provider.clear();
-        }
-      },
-      child: ScaffoldWithReturnButton(
-        popResult: Provider.of<ChatProvider>(context).didAddDocument,
-        child: Consumer<ChatProvider>(
-          builder: (context, provider, child) => Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-                  child: ListView.builder(
-                    //TODO animatedList
-                    itemCount: provider.messages.length,
-                    reverse: true,
-                    itemBuilder: (context, index) {
-                      final message = provider.messages[index];
-                      return _buildMessage(message, context);
-                    },
-                  ),
-                ),
-              ),
-              Container(
-                color: primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Column(
-                  children: [
-                    SendPictureButton(
-                      label: 'Tirar foto',
-                      icon: Icons.camera_alt_rounded,
-                      onPressed: () => _pickImagesFromCamera(),
-                    ),
-                    const SizedBox(height: 4),
-                    SendPictureButton(
-                      //TODO ver ngc da tela em chines dps q autoriza
-                      label: 'Escolher da galeria',
-                      icon: Icons.photo_library_rounded,
-                      onPressed: () {
-                        permissionCheck().then((permission) async {
-                          if (permission == PermissionState.denied) {
-                            await provider.addPermissionTip();
-                          }
-                          _pickImagesFromGallery();
-                        });
-                        // permissionRequest();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

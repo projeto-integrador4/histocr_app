@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
         Routes.chat: (context) => const ChatScreen(),
         Routes.history: (context) => const HistoryScreen(),
         Routes.documentDetail: (context) => const DocumentDetailScrreen(),
-        Routes.accountSettings : (context) => const AccountSettingsScreen(),
+        Routes.accountSettings: (context) => const AccountSettingsScreen(),
       },
       initialRoute:
           supabase.auth.currentSession == null ? Routes.login : Routes.home,

@@ -11,7 +11,7 @@ import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
-import 'package:histocr_app/utils/permission_helper.dart';
+import 'package:histocr_app/utils/permission_helper.dart' as permission_helper;
 import 'package:histocr_app/utils/portuguese_text_delegates.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      final permission = await checkPermission();
+      final permission = await permission_helper.checkPermission();
       if (permission == PermissionState.authorized) {
         _pickImagesFromGallery();
       }
@@ -103,15 +103,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _handleOpenGallery(ChatProvider provider) {
-    checkPermission().then((permission) async {
-      if (permission == PermissionState.denied) {
-        await provider.addPermissionTip();
-        await requestPermission();
-      } else {
-        _pickImagesFromGallery();
+  void _handleOpenGallery(ChatProvider provider) async {
+    final permission = await permission_helper.checkPermission();
+    if (permission == PermissionState.denied) {
+      await provider.addPermissionTip();
+      await permission_helper.requestPermission();
+
+      // Check again after requesting
+      final newPermission = await permission_helper.checkPermission();
+      if (newPermission == PermissionState.denied) {
+        // Still denied, show dialog to open settings
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => _buildSystemSettingsDialog(),
+        );
       }
-    });
+    } else {
+      _pickImagesFromGallery();
+    }
   }
 
   void _pickImagesFromGallery() async {
@@ -205,5 +215,36 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
       _ => ChatBubble(child: Text(type.text)),
     };
+  }
+
+  Widget _buildSystemSettingsDialog() {
+    return AlertDialog(
+      title: const Text('Permissão necessária'),
+      content: const Text(
+        'Você precisa permitir o acesso às fotos nas configurações do sistema.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            PhotoManager.openSetting();
+            Navigator.of(context).pop();
+          },
+          child: const Text(
+            'Abrir configurações',
+            style: TextStyle(
+              color: secondaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
   }
 }

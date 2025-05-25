@@ -11,32 +11,28 @@ import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
+import 'package:histocr_app/utils/permission_helper.dart';
 import 'package:histocr_app/utils/portuguese_text_delegates.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 import 'package:provider/provider.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
-  void _pickImagesFromGallery(BuildContext context) async {
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  void _pickImagesFromGallery() async {
     final provider = Provider.of<ChatProvider>(context, listen: false);
     final images = <File>[];
 
-    final result = await AssetPicker.pickAssetsWithDelegate(
-      context,
-      delegate: CustomAssetPickerBuilderDelegate(
-        textDelegate: PortugueseAssetPickerTextDelegate(),
-        themeColor: secondaryColor,
-        pathNameBuilder: (AssetPathEntity path) => switch (path) {
-          final p when p.isAll => 'Recentes',
-          _ => path.name,
-        },
-        provider: DefaultAssetPickerProvider(maxAssets: 10),
-        initialPermission: PermissionState.authorized,
-      ),
-    );
+    List<AssetEntity>? result = await _openAssetPicker();
+
+    if (!mounted) return; // Guard context usage
 
     if (result != null) {
       for (final asset in result) {
@@ -49,7 +45,28 @@ class ChatScreen extends StatelessWidget {
     provider.getTranscription(images);
   }
 
-  void _pickImagesFromCamera(BuildContext context) async {
+  Future<List<AssetEntity>?> _openAssetPicker() async {
+    try {
+      return await AssetPicker.pickAssetsWithDelegate(
+        context,
+        delegate: CustomAssetPickerBuilderDelegate(
+          textDelegate: PortugueseAssetPickerTextDelegate(),
+          themeColor: secondaryColor,
+          pathNameBuilder: (AssetPathEntity path) => switch (path) {
+            final p when p.isAll => 'Recentes',
+            _ => path.name,
+          },
+          provider: DefaultAssetPickerProvider(maxAssets: 10),
+          initialPermission: PermissionState.authorized,
+        ),
+      );
+    } on StateError {
+      Provider.of<ChatProvider>(context, listen: false).addPermissionTip();
+      return null;
+    }
+  }
+
+  void _pickImagesFromCamera() async {
     await CameraPicker.pickFromCamera(
       context,
       createPickerState: () => CustomCameraPickerState(maxAssets: 10),
@@ -94,11 +111,11 @@ class ChatScreen extends StatelessWidget {
           name: provider.document?.name ?? '',
           onNameChanged: (newName) => provider.updateDocumentName(newName),
         ),
-      PredefinedMessageType.firstMessage => ChatBubble(child: Text(type.text)),
       PredefinedMessageType.transcription => TranscriptionMessage(
           transcription: provider.document?.transcription ?? '',
         ),
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
+      _ => ChatBubble(child: Text(type.text)),
     };
   }
 
@@ -126,7 +143,7 @@ class ChatScreen extends StatelessWidget {
                     reverse: true,
                     itemBuilder: (context, index) {
                       final message = provider.messages[index];
-                      return _buildMessageContent(message, context);
+                      return _buildMessage(message, context);
                     },
                   ),
                 ),
@@ -140,14 +157,22 @@ class ChatScreen extends StatelessWidget {
                     SendPictureButton(
                       label: 'Tirar foto',
                       icon: Icons.camera_alt_rounded,
-                      onPressed: () => _pickImagesFromCamera(context),
+                      onPressed: () => _pickImagesFromCamera(),
                     ),
                     const SizedBox(height: 4),
                     SendPictureButton(
                       //TODO ver ngc da tela em chines dps q autoriza
                       label: 'Escolher da galeria',
                       icon: Icons.photo_library_rounded,
-                      onPressed: () => _pickImagesFromGallery(context),
+                      onPressed: () {
+                        permissionCheck().then((permission) async {
+                          if (permission == PermissionState.denied) {
+                            await provider.addPermissionTip();
+                          }
+                          _pickImagesFromGallery();
+                        });
+                        // permissionRequest();
+                      },
                     ),
                   ],
                 ),

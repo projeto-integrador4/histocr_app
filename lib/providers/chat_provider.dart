@@ -118,6 +118,19 @@ class ChatProvider extends BaseProvider {
     }
   }
 
+  Future<void> addPermissionTip() async {
+    if (messages.any(
+        (message) => message.type == PredefinedMessageType.permissionTip)) {
+      return;
+    }
+    _addMessage(ChatMessage.messagefromType(
+      PredefinedMessageType.permissionTip,
+    ));
+    await Future.delayed(
+      const Duration(seconds: 3),
+    );
+  }
+
   // --- Private helpers ---
 
   void _addMessage(ChatMessage message) {

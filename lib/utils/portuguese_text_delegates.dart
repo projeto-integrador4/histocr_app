@@ -22,6 +22,24 @@ class PortugueseAssetPickerTextDelegate extends AssetPickerTextDelegate {
 
   @override
   String get goToSystemSettings => 'Ir para as configurações do sistema';
+
+  @override
+  String get viewingLimitedAssetsTip =>
+      'O aplicativo só pode acessar alguns álbuns da sua galeria.';
+
+  @override
+  String get changeAccessibleLimitedAssets =>
+      'Toque para definir quais itens podem ser acessados';
+
+  @override
+  String get accessAllTip => 'Você definiu que o aplicativo só pode acessar parte das imagens do dispositivo, '
+      'recomendamos permitir o acesso a "todos os recursos".';
+
+  @override
+  String get accessLimitedAssets => 'Continuar acessando apenas algumas imagens';
+
+  @override
+  String get unableToAccessAll => 'Não é possível acessar todos as imagens';
 }
 
 class PortugueseCameraPickerTextDelegate extends CameraPickerTextDelegate {

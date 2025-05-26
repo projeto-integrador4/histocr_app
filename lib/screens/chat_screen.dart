@@ -26,6 +26,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+  bool _hasRequestedGalleryPermission = false;
   @override
   void initState() {
     super.initState();
@@ -40,11 +41,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && _hasRequestedGalleryPermission) {
       final permission = await permission_helper.checkPermission();
       if (permission == PermissionState.authorized) {
         _pickImagesFromGallery();
       }
+      setState(() {
+        _hasRequestedGalleryPermission = false;
+      });
     }
   }
 
@@ -89,6 +93,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                     const SizedBox(height: 4),
                     SendPictureButton(
+                      enabled: !_hasRequestedGalleryPermission,
                       label: 'Escolher da galeria',
                       icon: Icons.photo_library_rounded,
                       onPressed: () => _handleOpenGallery(provider),
@@ -104,6 +109,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _handleOpenGallery(ChatProvider provider) async {
+    setState(() {
+      _hasRequestedGalleryPermission = true;
+    });
+
     final permission = await permission_helper.checkPermission();
     if (permission == PermissionState.denied) {
       await provider.addPermissionTip();
@@ -121,6 +130,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     } else {
       _pickImagesFromGallery();
+      setState(() {
+        _hasRequestedGalleryPermission = false;
+      });
     }
   }
 
@@ -198,16 +210,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return switch (type) {
       PredefinedMessageType.rating => RatingMessage(
           rating: message.document?.rating ?? 0,
-          onRatingChanged: (newRating) => provider.updateRating(rating: newRating, document: message.document!),
+          onRatingChanged: (newRating) => provider.updateRating(
+              rating: newRating, document: message.document!),
         ),
       PredefinedMessageType.correction => CorrectionMessage(
           document: message.document!,
-          onCorrectionSaved: (newCorrection) =>
-              provider.sendCorrection(text: newCorrection, document: message.document!),
+          onCorrectionSaved: (newCorrection) => provider.sendCorrection(
+              text: newCorrection, document: message.document!),
         ),
       PredefinedMessageType.editName => EditNameMessage(
           name: message.document?.name ?? '',
-          onNameChanged: (newName) => provider.updateDocumentName(name: newName, document: message.document!),
+          onNameChanged: (newName) => provider.updateDocumentName(
+              name: newName, document: message.document!),
         ),
       PredefinedMessageType.transcription => TranscriptionMessage(
           transcription: message.textContent ?? '',

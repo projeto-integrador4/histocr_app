@@ -6,11 +6,14 @@ class SendPictureButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool enabled;
+
   const SendPictureButton({
     super.key,
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.enabled = true,
   });
 
   @override
@@ -18,9 +21,10 @@ class SendPictureButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: FilledButton(
-        onPressed: onPressed,
+        onPressed: enabled ? onPressed : null,
         style: FilledButton.styleFrom(
           backgroundColor: secondaryColor,
+          disabledBackgroundColor: secondaryColor.withOpacity(0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

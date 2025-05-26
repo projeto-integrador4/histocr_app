@@ -63,8 +63,9 @@ class MyApp extends StatelessWidget {
         Routes.documentDetail: (context) => const DocumentDetailScrreen(),
         Routes.accountSettings: (context) => const AccountSettingsScreen(),
       },
-      initialRoute:
-          supabase.auth.currentSession == null ? Routes.login : Routes.home,
+      // initialRoute:
+      //     supabase.auth.currentSession == null ? Routes.login : Routes.home,
+      initialRoute: Routes.login,
     );
   }
 }

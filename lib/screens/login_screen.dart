@@ -2,12 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/histocr_title.dart';
 import 'package:histocr_app/components/loading_indicator.dart';
+import 'package:histocr_app/main.dart';
 import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/utils/routes.dart';
 import 'package:provider/provider.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  @override
+  void initState() {
+    if (supabase.auth.currentUser != null) {
+      // If the user is already logged in, redirect to the home screen
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final navigator = Navigator.of(context);
+
+        navigator.pushReplacementNamed(Routes.completeProfile);
+      });
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,4 +96,3 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-

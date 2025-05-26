@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 
 class SendPictureButton extends StatelessWidget {
@@ -26,16 +27,24 @@ class SendPictureButton extends StatelessWidget {
           backgroundColor: secondaryColor,
           disabledBackgroundColor: secondaryColor.withOpacity(0.5),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-            ),
-            Icon(icon),
-          ],
-        ),
+        child: enabled
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(
+                    icon,
+                  ),
+                ],
+              )
+            : const Center(
+                child: LoadingIndicator(),
+              ),
       ),
     );
   }

@@ -14,7 +14,7 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with RouteAware {
   List<Document> allDocuments = [];
   List<Document> filteredDocuments = [];
   bool success = true;
@@ -52,10 +52,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  @override
-  void initState() {
+   @override
+  void didPush() {
+    // Called when HomeScreen is shown
     _fetchDocuments();
-    super.initState();
   }
 
   @override

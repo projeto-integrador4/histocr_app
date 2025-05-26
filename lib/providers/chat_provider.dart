@@ -30,7 +30,6 @@ class ChatProvider extends BaseProvider {
   void clear() {
     messages.clear();
     documents.clear();
-    didAddDocument = false;
     _addMessage(
         ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
     notifyListeners();
@@ -80,6 +79,14 @@ class ChatProvider extends BaseProvider {
         ),
       );
     }
+  }
+
+  bool consumeDidAddDocumentFlag() {
+    if (didAddDocument) {
+      didAddDocument = false;
+      return true;
+    }
+    return false;
   }
 
   void updateDocumentName({required Document document,required String name}) async {

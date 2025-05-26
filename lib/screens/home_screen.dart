@@ -7,6 +7,7 @@ import 'package:histocr_app/components/screen_width_button.dart';
 import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/providers/auth_provider.dart';
+import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/routes.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   List<Document> documents = [];
   bool success = false;
   bool loading = false;
-  bool _shouldFetchOnReturn = false;
 
   void _fetchDocuments() async {
     setState(() {
@@ -35,8 +35,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           .from('documents')
           .select()
           .eq('user_id', supabase.auth.currentUser!.id)
-          .limit(3)
-          .order('updated_at', ascending: false);
+          .order('updated_at', ascending: false)
+          .limit(3);
 
       setState(() {
         if (response.isEmpty) {
@@ -68,12 +68,6 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   @override
-  void initState() {
-    _fetchDocuments();
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
@@ -86,11 +80,18 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   @override
+  void didPush() {
+    // Called when HomeScreen is shown
+    _fetchDocuments();
+  }
+
+  @override
   void didPopNext() {
-    // Only fetch if flag was set
-    if (_shouldFetchOnReturn) {
+    final popResult = Provider.of<ChatProvider>(context, listen: false)
+        .consumeDidAddDocumentFlag();
+
+    if (popResult) {
       _fetchDocuments();
-      _shouldFetchOnReturn = false;
     }
   }
 
@@ -145,11 +146,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () async {
-                                final shouldChange = await Navigator.pushNamed(
-                                    context, Routes.history) as bool?;
-                                if (shouldChange != null && shouldChange) {
-                                  _shouldFetchOnReturn = true;
-                                }
+                                await Navigator.pushNamed(
+                                    context, Routes.history);
                               },
                               child: Text(
                                 'Ver mais',
@@ -168,11 +166,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
               ScreenWidthButton(
                 label: 'Iniciar Chat',
                 onPressed: () async {
-                  final shouldChange =
-                      await navigator.pushNamed(Routes.chat) as bool?;
-                  if (shouldChange != null && shouldChange) {
-                    _shouldFetchOnReturn = true;
-                  }
+                  await navigator.pushNamed(Routes.chat);
                 },
                 color: secondaryColor,
               ),
@@ -180,7 +174,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
               ScreenWidthButton(
                 label: 'Configurações da Conta',
                 onPressed: () {
-                  Provider.of<AuthProvider>(context, listen: false).fetchUserInfo();
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .fetchUserInfo();
                   navigator.pushNamed(Routes.accountSettings);
                 },
               ),

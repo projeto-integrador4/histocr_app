@@ -12,7 +12,7 @@ class ChatProvider extends BaseProvider {
   List<ChatMessage> messages = [
     ChatMessage.messagefromType(PredefinedMessageType.firstMessage)
   ];
-  Document? document;
+  List<Document> documents = [];
   bool didAddDocument = false;
 
   // --- Public API ---
@@ -29,7 +29,7 @@ class ChatProvider extends BaseProvider {
 
   void clear() {
     messages.clear();
-    document = null;
+    documents.clear();
     didAddDocument = false;
     _addMessage(
         ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
@@ -49,9 +49,10 @@ class ChatProvider extends BaseProvider {
         body: request.toJson(),
       );
 
-      document = Document.fromTranscriptionResponseJson(response.data);
+      final document = Document.fromTranscriptionResponseJson(response.data);
+      documents.insert(0, document);
       didAddDocument = true;
-      _addResponseMessages();
+      _addResponseMessages(document);
     } catch (e) {
       _addMessage(
         ChatMessage(
@@ -64,13 +65,12 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  void updateRating(int rating) async {
+  void updateRating({required Document document ,required int rating}) async {
     try {
-      if (document?.id == null) return;
       await supabase
           .from('documents')
-          .update({'rating': rating}).eq('id', document!.id);
-      document!.rating = rating;
+          .update({'rating': rating}).eq('id', document.id);
+      document.rating = rating;
       notifyListeners();
     } catch (e) {
       _addMessage(
@@ -82,13 +82,12 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  void updateDocumentName(String name) async {
-    if (document?.id == null) return;
+  void updateDocumentName({required Document document,required String name}) async {
     try {
       await supabase
           .from('documents')
-          .update({'document_name': name}).eq('id', document!.id);
-      document!.name = name;
+          .update({'document_name': name}).eq('id', document.id);
+      document.name = name;
       notifyListeners();
     } catch (e) {
       _addMessage(
@@ -100,13 +99,12 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  void sendCorrection(String text) async {
+  void sendCorrection({required Document document, required String text}) async {
     try {
-      if (document?.id == null) return;
       await supabase
           .from('documents')
-          .update({'corrected_text': text}).eq('id', document!.id);
-      document!.correctedText = text;
+          .update({'corrected_text': text}).eq('id', document.id);
+      document.correctedText = text;
       notifyListeners();
     } catch (e) {
       _addMessage(
@@ -145,15 +143,15 @@ class ChatProvider extends BaseProvider {
     userMessages.forEach(_addMessage);
   }
 
-  void _addResponseMessages() {
+  void _addResponseMessages(Document document) {
     final responseMessages = [
       ChatMessage(
-        textContent: document?.originalText,
+        textContent: document.transcription,
         type: PredefinedMessageType.transcription,
       ),
-      ChatMessage.messagefromType(PredefinedMessageType.rating),
-      ChatMessage.messagefromType(PredefinedMessageType.correction),
-      ChatMessage.messagefromType(PredefinedMessageType.editName),
+      ChatMessage.messagefromType(PredefinedMessageType.rating, document: document),
+      ChatMessage.messagefromType(PredefinedMessageType.correction, document: document),
+      ChatMessage.messagefromType(PredefinedMessageType.editName, document: document),
     ];
     responseMessages.forEach(_addMessage);
   }

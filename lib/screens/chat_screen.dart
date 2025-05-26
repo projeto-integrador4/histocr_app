@@ -197,20 +197,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final provider = Provider.of<ChatProvider>(context);
     return switch (type) {
       PredefinedMessageType.rating => RatingMessage(
-          rating: provider.document?.rating ?? 0,
-          onRatingChanged: (newRating) => provider.updateRating(newRating),
+          rating: message.document?.rating ?? 0,
+          onRatingChanged: (newRating) => provider.updateRating(rating: newRating, document: message.document!),
         ),
       PredefinedMessageType.correction => CorrectionMessage(
-          document: provider.document!,
+          document: message.document!,
           onCorrectionSaved: (newCorrection) =>
-              provider.sendCorrection(newCorrection),
+              provider.sendCorrection(text: newCorrection, document: message.document!),
         ),
       PredefinedMessageType.editName => EditNameMessage(
-          name: provider.document?.name ?? '',
-          onNameChanged: (newName) => provider.updateDocumentName(newName),
+          name: message.document?.name ?? '',
+          onNameChanged: (newName) => provider.updateDocumentName(name: newName, document: message.document!),
         ),
       PredefinedMessageType.transcription => TranscriptionMessage(
-          transcription: provider.document?.transcription ?? '',
+          transcription: message.textContent ?? '',
         ),
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
       _ => ChatBubble(child: Text(type.text)),

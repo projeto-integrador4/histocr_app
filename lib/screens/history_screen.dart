@@ -21,6 +21,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RouteAware {
   bool loading = false;
 
   void _fetchDocuments() async {
+    if (supabase.auth.currentUser == null) return;
+
     setState(() {
       loading = true;
     });
@@ -52,7 +54,19 @@ class _HistoryScreenState extends State<HistoryScreen> with RouteAware {
     }
   }
 
-   @override
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
   void didPush() {
     // Called when HomeScreen is shown
     _fetchDocuments();

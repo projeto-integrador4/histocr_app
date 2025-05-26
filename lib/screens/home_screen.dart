@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool loading = false;
 
   void _fetchDocuments() async {
+    if (supabase.auth.currentUser == null) return;
     setState(() {
       success = true;
       loading = true;

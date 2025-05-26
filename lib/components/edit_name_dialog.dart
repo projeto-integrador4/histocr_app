@@ -11,6 +11,12 @@ class EditNameDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextEditingController nameController =
         TextEditingController(text: name);
+    final ValueNotifier<bool> isNotEmpty =
+        ValueNotifier(nameController.text.isNotEmpty);
+
+    nameController.addListener(() {
+      isNotEmpty.value = nameController.text.isNotEmpty;
+    });
 
     return AlertDialog(
       title: Text(
@@ -24,18 +30,25 @@ class EditNameDialog extends StatelessWidget {
         ),
       ),
       actions: [
-        FilledButton(
-          onPressed: () {
-            onNameChanged?.call(nameController.text);
-            Navigator.pop(context);
-          },
-          style: FilledButton.styleFrom(backgroundColor: secondaryColor),
-          child: Text(
-            "Salvar",
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ValueListenableBuilder<bool>(
+          valueListenable: isNotEmpty,
+          builder: (context, value, child) => FilledButton(
+            onPressed: value
+                ? () => _handleSaveName(nameController.text, context)
+                : null,
+            style: FilledButton.styleFrom(backgroundColor: secondaryColor),
+            child: Text(
+              "Salvar",
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ],
     );
+  }
+
+  void _handleSaveName(String newName, BuildContext context) {
+    onNameChanged?.call(newName);
+    Navigator.pop(context);
   }
 }

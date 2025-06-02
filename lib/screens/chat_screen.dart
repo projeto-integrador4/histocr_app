@@ -62,7 +62,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: ScaffoldWithReturnButton(
-        popResult: Provider.of<ChatProvider>(context).didAddDocument,
         child: Consumer<ChatProvider>(
           builder: (context, provider, child) => Column(
             children: [
@@ -210,13 +209,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return switch (type) {
       PredefinedMessageType.rating => RatingMessage(
           rating: message.document?.rating ?? 0,
-          onRatingChanged: (newRating) => provider.updateRating(
+          onRatingChanged: (newRating) => provider.updateDocumentRating(
               rating: newRating, document: message.document!),
         ),
       PredefinedMessageType.correction => CorrectionMessage(
           document: message.document!,
           onCorrectionSaved: (newCorrection) => provider.sendCorrection(
-              text: newCorrection, document: message.document!),
+              correction: newCorrection, document: message.document!),
         ),
       PredefinedMessageType.editName => EditNameMessage(
           name: message.document?.name ?? '',
@@ -224,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               name: newName, document: message.document!),
         ),
       PredefinedMessageType.transcription => TranscriptionMessage(
-          transcription: message.textContent ?? '',
+          transcription: message.document?.transcription ?? '',
         ),
       PredefinedMessageType.typing => const TypingIndicatorMessage(),
       _ => ChatBubble(child: Text(type.text)),

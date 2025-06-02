@@ -1,20 +1,22 @@
 import 'dart:io';
 
-import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/models/document.dart';
 import 'package:histocr_app/models/image_transcription_request.dart';
 import 'package:histocr_app/models/transcription_request.dart';
 import 'package:histocr_app/providers/base_provider.dart';
+import 'package:histocr_app/providers/documents_provider.dart';
+import 'package:histocr_app/services/document_service.dart';
 import 'package:histocr_app/utils/predefined_messages_type.dart';
 
 class ChatProvider extends BaseProvider {
+  DocumentsProvider documentsProvider;
+
+  ChatProvider({required this.documentsProvider});
+
   List<ChatMessage> messages = [
     ChatMessage.messagefromType(PredefinedMessageType.firstMessage)
   ];
-  List<Document> documents = [];
-  bool didAddDocument = false;
-
   // --- Public API ---
 
   @override
@@ -29,7 +31,6 @@ class ChatProvider extends BaseProvider {
 
   void clear() {
     messages.clear();
-    documents.clear();
     _addMessage(
         ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
     notifyListeners();
@@ -43,14 +44,8 @@ class ChatProvider extends BaseProvider {
       setLoading(true);
 
       final request = await _buildFunctionRequest(images: images);
-      final response = await supabase.functions.invoke(
-        'gemini',
-        body: request.toJson(),
-      );
-
-      final document = Document.fromTranscriptionResponseJson(response.data);
-      documents.insert(0, document);
-      didAddDocument = true;
+      final document = await DocumentService.getTranscription(request);
+      documentsProvider.addNewDocument(document!);
       _addResponseMessages(document);
     } catch (e) {
       _addMessage(
@@ -64,13 +59,12 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  void updateRating({required Document document ,required int rating}) async {
+  void updateDocumentRating(
+      {required Document document, required int rating}) async {
     try {
-      await supabase
-          .from('documents')
-          .update({'rating': rating}).eq('id', document.id);
-      document.rating = rating;
-      notifyListeners();
+      await documentsProvider.updateDocumentRating(
+          document: document, rating: rating);
+      _updateDocumentRatingInChat(document, rating);
     } catch (e) {
       _addMessage(
         ChatMessage(
@@ -81,21 +75,14 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  bool consumeDidAddDocumentFlag() {
-    if (didAddDocument) {
-      didAddDocument = false;
-      return true;
-    }
-    return false;
-  }
-
-  void updateDocumentName({required Document document,required String name}) async {
+  void updateDocumentName(
+      {required Document document, required String name}) async {
     try {
-      await supabase
-          .from('documents')
-          .update({'document_name': name}).eq('id', document.id);
-      document.name = name;
-      notifyListeners();
+      await documentsProvider.updateDocumentName(
+        name: name,
+        document: document,
+      );
+      _updateDocumentNameInChat(document, name);
     } catch (e) {
       _addMessage(
         ChatMessage(
@@ -106,13 +93,14 @@ class ChatProvider extends BaseProvider {
     }
   }
 
-  void sendCorrection({required Document document, required String text}) async {
+  void sendCorrection(
+      {required Document document, required String correction}) async {
     try {
-      await supabase
-          .from('documents')
-          .update({'corrected_text': text}).eq('id', document.id);
-      document.correctedText = text;
-      notifyListeners();
+      await documentsProvider.sendCorrection(
+        document: document,
+        correction: correction,
+      );
+      _updateDocumentTranscriptionInChat(document, correction);
     } catch (e) {
       _addMessage(
         ChatMessage(
@@ -123,6 +111,7 @@ class ChatProvider extends BaseProvider {
     }
   }
 
+  //TODO add popup before asking for permission the first time, instead of just showing the message
   Future<void> addPermissionTip() async {
     if (messages.any(
         (message) => message.type == PredefinedMessageType.permissionTip)) {
@@ -153,12 +142,15 @@ class ChatProvider extends BaseProvider {
   void _addResponseMessages(Document document) {
     final responseMessages = [
       ChatMessage(
-        textContent: document.transcription,
+        document: document,
         type: PredefinedMessageType.transcription,
       ),
-      ChatMessage.messagefromType(PredefinedMessageType.rating, document: document),
-      ChatMessage.messagefromType(PredefinedMessageType.correction, document: document),
-      ChatMessage.messagefromType(PredefinedMessageType.editName, document: document),
+      ChatMessage.messagefromType(PredefinedMessageType.rating,
+          document: document),
+      ChatMessage.messagefromType(PredefinedMessageType.correction,
+          document: document),
+      ChatMessage.messagefromType(PredefinedMessageType.editName,
+          document: document),
     ];
     responseMessages.forEach(_addMessage);
   }
@@ -186,5 +178,33 @@ class ChatProvider extends BaseProvider {
     return TranscriptionRequest(
       images: imageTranscriptionRequests,
     );
+  }
+
+  int _findDocumentIndexInChat(String documentId) => messages.indexWhere(
+        (message) => message.document?.id == documentId,
+      );
+
+  void _updateDocumentTranscriptionInChat(Document document, String text) {
+    final index = _findDocumentIndexInChat(document.id);
+    if (index != -1) {
+      messages[index].document?.correctedText = text;
+      notifyListeners();
+    }
+  }
+
+  void _updateDocumentNameInChat(Document document, String name) {
+    final index = _findDocumentIndexInChat(document.id);
+    if (index != -1) {
+      messages[index].document?.name = name;
+      notifyListeners();
+    }
+  }
+
+  void _updateDocumentRatingInChat(Document document, int rating) {
+    final index = _findDocumentIndexInChat(document.id);
+    if (index != -1) {
+      messages[index].document?.rating = rating;
+      notifyListeners();
+    }
   }
 }

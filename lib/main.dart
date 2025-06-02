@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
+import 'package:histocr_app/providers/documents_provider.dart';
 import 'package:histocr_app/screens/account_settings_screen.dart';
 import 'package:histocr_app/screens/chat_screen.dart';
 import 'package:histocr_app/screens/complete_profile_screen.dart';
@@ -27,7 +28,23 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
-        ChangeNotifierProvider(create: (context) => ChatProvider()),
+        ChangeNotifierProvider(
+          create: (context) => DocumentsProvider(),
+        ),
+        ChangeNotifierProxyProvider<DocumentsProvider, ChatProvider>(
+          create: (context) => ChatProvider(
+            documentsProvider: Provider.of<DocumentsProvider>(context, listen: false),
+          ),
+          update: (context, documentsProvider, previous) {
+            // If previous exists, update its documentsProvider reference
+            if (previous != null) {
+              previous.documentsProvider = documentsProvider;
+              return previous;
+            }
+            // Otherwise, create a new instance
+            return ChatProvider(documentsProvider: documentsProvider);
+          },
+        ),
       ],
       child: const MyApp(),
     ),
@@ -35,8 +52,6 @@ Future<void> main() async {
 }
 
 final supabase = Supabase.instance.client;
-final RouteObserver<ModalRoute<void>> routeObserver =
-    RouteObserver<ModalRoute<void>>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -45,7 +60,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorObservers: [routeObserver],
       title: 'HistOCR',
       theme: ThemeData(
         fontFamily: GoogleFonts.inter().fontFamily,

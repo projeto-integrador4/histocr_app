@@ -33,6 +33,7 @@ class Document {
       id: json['documentId'],
       name: json['documentName'],
       originalText: json['transcribedText'],
+      updatedAt: DateTime.now().subtract(Duration(milliseconds: json['totalProcessingTimeMs'])),
       uploadedFilePaths:
           (json['uploadedFilePaths'] as List).map((e) => e.toString()).toList(),
     );

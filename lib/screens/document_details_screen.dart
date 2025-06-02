@@ -6,10 +6,11 @@ import 'package:histocr_app/components/network_image_with_fallback.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
 import 'package:histocr_app/components/star_review.dart';
-import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/document.dart';
+import 'package:histocr_app/providers/documents_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/image_helper.dart';
+import 'package:provider/provider.dart';
 
 class DocumentDetailScrreen extends StatefulWidget {
   const DocumentDetailScrreen({super.key});
@@ -19,24 +20,23 @@ class DocumentDetailScrreen extends StatefulWidget {
 }
 
 class _DocumentDetailScrreenState extends State<DocumentDetailScrreen> {
+  
   void _updateDocumentName(
       {required String name, required Document document}) async {
     try {
-      await supabase
-          .from('documents')
-          .update({'document_name': name}).eq('id', document.id);
+      await Provider.of<DocumentsProvider>(context, listen: false)
+          .updateDocumentName(name: name, document: document);
       document.name = name;
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao atualizar o nome do documento'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } finally {
       setState(() {});
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao atualizar o nome do documento'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -92,7 +92,7 @@ class _DocumentDetailScrreenState extends State<DocumentDetailScrreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: SingleChildScrollView(
-                  child: Text(document.originalText),
+                  child: Text(document.transcription),
                 ),
               ),
             ),

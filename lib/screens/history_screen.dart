@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/last_transcripts_item.dart';
 import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
-import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/document.dart';
+import 'package:histocr_app/providers/documents_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -14,66 +15,25 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> with RouteAware {
-  List<Document> allDocuments = [];
+class _HistoryScreenState extends State<HistoryScreen> {
   List<Document> filteredDocuments = [];
-  bool success = true;
-  bool loading = false;
 
-  void _fetchDocuments() async {
-    if (supabase.auth.currentUser == null) return;
-
-    setState(() {
-      loading = true;
-    });
-
-    try {
-      final response = await supabase
-          .from('documents')
-          .select()
-          .eq('user_id', supabase.auth.currentUser!.id)
-          .order('updated_at', ascending: false);
-      allDocuments = List<Document>.from(
-        response.map((doc) => Document.fromJson(doc)),
-      );
-      filteredDocuments = allDocuments;
-    } catch (e) {
-      success = false;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao carregar documentos'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } finally {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<DocumentsProvider>(context, listen: false);
+      if (!mounted) return;
       setState(() {
-        loading = false;
+        filteredDocuments = provider.documents;
       });
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPush() {
-    // Called when HomeScreen is shown
-    _fetchDocuments();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<DocumentsProvider>(context);
+    
     return ScaffoldWithReturnButton(
       title: Container(
         alignment: Alignment.bottomCenter,
@@ -92,13 +52,14 @@ class _HistoryScreenState extends State<HistoryScreen> with RouteAware {
             ),
           ),
           onChanged: (value) => setState(() {
-            filteredDocuments = allDocuments
-                .where((doc) => doc.name.toLowerCase().contains(value))
+            filteredDocuments = provider.documents
+                .where((doc) =>
+                    doc.name.toLowerCase().contains(value.toLowerCase()))
                 .toList();
           }),
         ),
       ),
-      child: loading
+      child: provider.loading
           ? const Center(child: LoadingIndicator())
           : filteredDocuments.isNotEmpty
               ? ListView.separated(

@@ -4,7 +4,6 @@ import 'package:histocr_app/components/histocr_title.dart';
 import 'package:histocr_app/components/last_transcripts_item.dart';
 import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/components/screen_width_button.dart';
-import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/providers/documents_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/routes.dart';
@@ -115,8 +114,6 @@ class HomeScreen extends StatelessWidget {
               ScreenWidthButton(
                 label: 'Configurações da Conta',
                 onPressed: () {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .fetchUserInfo();
                   navigator.pushNamed(Routes.accountSettings);
                 },
               ),

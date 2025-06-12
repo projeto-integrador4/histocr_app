@@ -18,6 +18,17 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
+
+  @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<AuthProvider>(context, listen: false);
+      if (!mounted) return;
+      await provider.fetchUserInfo();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AuthProvider>(context);

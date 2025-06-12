@@ -9,9 +9,14 @@ import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/routes.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   _fetchDocuments(BuildContext context) async {
     final provider = Provider.of<DocumentsProvider>(context, listen: false);
     try {
@@ -28,9 +33,16 @@ class HomeScreen extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchDocuments(context);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final navigator = Navigator.of(context);
-    _fetchDocuments(context);
 
     return Scaffold(
       body: Center(

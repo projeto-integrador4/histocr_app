@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:histocr_app/components/assets_picker/custom_asset_picker_builder.dart';
 import 'package:histocr_app/components/camera_picker/custom_camera_picker_state.dart';
 import 'package:histocr_app/components/chat/chat_bubble.dart';
-import 'package:histocr_app/components/chat/predefined_messages_widgets.dart';
+import 'package:histocr_app/components/chat/predefined_messages/correction_message.dart';
+import 'package:histocr_app/components/chat/predefined_messages/edit_name_message.dart';
+import 'package:histocr_app/components/chat/predefined_messages/rating_message.dart';
+import 'package:histocr_app/components/chat/predefined_messages/transcription_message.dart';
+import 'package:histocr_app/components/chat/predefined_messages/typing_indicator_message.dart';
 import 'package:histocr_app/components/chat/send_picture_button.dart';
-import 'package:histocr_app/components/chat/typing_indicator_message.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
+import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/chat_message.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
@@ -194,40 +198,64 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget _buildUserMessage(ChatMessage message) {
     return ChatBubble(
       isUserMessage: message.isUserMessage,
-      child: message.image == null
-          ? Text(message.textContent ?? '')
-          : ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(message.image!),
-            ),
+      child: message.rating != null
+          ? StarReview(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              size: 36,
+              rating: message.rating!,
+            )
+          : message.image == null
+              ? Text(message.textContent ?? '')
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(message.image!),
+                ),
     );
   }
 
   Widget _buildPredefinedMessage(ChatMessage message, BuildContext context) {
     final type = message.type!;
     final provider = Provider.of<ChatProvider>(context);
-    return switch (type) {
-      PredefinedMessageType.rating => RatingMessage(
-          rating: message.document?.rating ?? 0,
+
+    switch (type) {
+      case PredefinedMessageType.rating:
+        return RatingMessage(
+          document: message.document!,
           onRatingChanged: (newRating) => provider.updateDocumentRating(
-              rating: newRating, document: message.document!),
-        ),
-      PredefinedMessageType.correction => CorrectionMessage(
+              rating: newRating,
+              document: message.document!,
+            ),
+        );
+
+      case PredefinedMessageType.correction:
+        return CorrectionMessage(
           document: message.document!,
           onCorrectionSaved: (newCorrection) => provider.sendCorrection(
-              correction: newCorrection, document: message.document!),
-        ),
-      PredefinedMessageType.editName => EditNameMessage(
+            correction: newCorrection,
+            document: message.document!,
+          ),
+        );
+
+      case PredefinedMessageType.editName:
+        return EditNameMessage(
           name: message.document?.name ?? '',
           onNameChanged: (newName) => provider.updateDocumentName(
-              name: newName, document: message.document!),
-        ),
-      PredefinedMessageType.transcription => TranscriptionMessage(
-          transcription: message.document?.transcription ?? '',
-        ),
-      PredefinedMessageType.typing => const TypingIndicatorMessage(),
-      _ => ChatBubble(child: Text(type.text)),
-    };
+            name: newName,
+            document: message.document!,
+          ),
+        );
+
+      case PredefinedMessageType.transcription:
+        return TranscriptionMessage(
+          transcription: message.textContent ?? '',
+        );
+
+      case PredefinedMessageType.typing:
+        return const TypingIndicatorMessage();
+
+      default:
+        return ChatBubble(child: Text(type.text));
+    }
   }
 
   Widget _buildSystemSettingsDialog() {

@@ -5,6 +5,7 @@ class StarReview extends StatelessWidget {
   final int rating;
   final double size;
   final Function(int)? onRatingChanged;
+  final MainAxisAlignment mainAxisAlignment;
 
   final Icon starOutline;
   final Icon starSolid;
@@ -14,6 +15,7 @@ class StarReview extends StatelessWidget {
     this.rating = 0,
     required this.size,
     this.onRatingChanged,
+    this.mainAxisAlignment = MainAxisAlignment.start,
   })  : starOutline = Icon(
           Icons.star_border_rounded,
           size: size,
@@ -38,6 +40,7 @@ class StarReview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: mainAxisAlignment,
       children: List.generate(
         5,
         (index) => buildStar(context, index),

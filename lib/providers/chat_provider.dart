@@ -15,7 +15,7 @@ class ChatProvider extends BaseProvider {
   ChatProvider({required this.documentsProvider});
 
   List<ChatMessage> messages = [
-    ChatMessage.messagefromType(PredefinedMessageType.firstMessage)
+    ChatMessage.fromType(PredefinedMessageType.firstMessage)
   ];
   // --- Public API ---
 
@@ -31,8 +31,7 @@ class ChatProvider extends BaseProvider {
 
   void clear() {
     messages.clear();
-    _addMessage(
-        ChatMessage.messagefromType(PredefinedMessageType.firstMessage));
+    addMessage(ChatMessage.fromType(PredefinedMessageType.firstMessage));
     notifyListeners();
   }
 
@@ -48,7 +47,7 @@ class ChatProvider extends BaseProvider {
       documentsProvider.addNewDocument(document!);
       _addResponseMessages(document);
     } catch (e) {
-      _addMessage(
+      addMessage(
         ChatMessage(
           textContent:
               'Ocorreu um erro $e ao processar a imagem, tente novamente.',
@@ -66,7 +65,7 @@ class ChatProvider extends BaseProvider {
           document: document, rating: rating);
       _updateDocumentRatingInChat(document, rating);
     } catch (e) {
-      _addMessage(
+      addMessage(
         ChatMessage(
           textContent:
               'Ocorreu um erro $e ao atualizar a sua avaliação, tente novamente.',
@@ -84,7 +83,7 @@ class ChatProvider extends BaseProvider {
       );
       _updateDocumentNameInChat(document, name);
     } catch (e) {
-      _addMessage(
+      addMessage(
         ChatMessage(
           textContent:
               'Ocorreu um erro $e ao atualizar o nome do seu documento, tente novamente.',
@@ -102,7 +101,7 @@ class ChatProvider extends BaseProvider {
       );
       _updateDocumentTranscriptionInChat(document, correction);
     } catch (e) {
-      _addMessage(
+      addMessage(
         ChatMessage(
           textContent:
               'Ocorreu um erro $e ao atualizar a sua correção, tente novamente.',
@@ -117,7 +116,7 @@ class ChatProvider extends BaseProvider {
         (message) => message.type == PredefinedMessageType.permissionTip)) {
       return;
     }
-    _addMessage(ChatMessage.messagefromType(
+    addMessage(ChatMessage.fromType(
       PredefinedMessageType.permissionTip,
     ));
     await Future.delayed(
@@ -125,18 +124,18 @@ class ChatProvider extends BaseProvider {
     );
   }
 
-  // --- Private helpers ---
-
-  void _addMessage(ChatMessage message) {
+  void addMessage(ChatMessage message) {
     messages.insert(0, message);
     notifyListeners();
   }
+
+  // --- Private helpers ---
 
   void _addUserMessages(List<File> images) {
     final userMessages = images
         .map((image) => ChatMessage(image: image, isUserMessage: true))
         .toList();
-    userMessages.forEach(_addMessage);
+    userMessages.forEach(addMessage);
   }
 
   void _addResponseMessages(Document document) {
@@ -144,21 +143,17 @@ class ChatProvider extends BaseProvider {
       ChatMessage(
         document: document,
         type: PredefinedMessageType.transcription,
+        textContent: document.originalText,
       ),
-      ChatMessage.messagefromType(PredefinedMessageType.rating,
-          document: document),
-      ChatMessage.messagefromType(PredefinedMessageType.correction,
-          document: document),
-      ChatMessage.messagefromType(PredefinedMessageType.editName,
-          document: document),
+      ChatMessage.fromType(PredefinedMessageType.rating, document: document),
     ];
-    responseMessages.forEach(_addMessage);
+    responseMessages.forEach(addMessage);
   }
 
   void _addTypingMessage() {
     messages.insert(
       0,
-      ChatMessage.messagefromType(PredefinedMessageType.typing),
+      ChatMessage.fromType(PredefinedMessageType.typing),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +22,9 @@ class DocumentDetailScrreen extends StatefulWidget {
 }
 
 class _DocumentDetailScrreenState extends State<DocumentDetailScrreen> {
-  
+  bool _copied = false;
+  Timer? _timer;
+
   void _updateDocumentName(
       {required String name, required Document document}) async {
     try {
@@ -38,6 +42,29 @@ class _DocumentDetailScrreenState extends State<DocumentDetailScrreen> {
         ),
       );
     }
+  }
+
+  void _handleCopy(String data) async {
+    await Clipboard.setData(
+      ClipboardData(text: data),
+    );
+    setState(() {
+      _copied = true;
+    });
+    _timer?.cancel();
+    _timer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _copied = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -97,10 +124,8 @@ class _DocumentDetailScrreenState extends State<DocumentDetailScrreen> {
               ),
             ),
             ScreenWidthButton(
-              label: "Copiar texto",
-              onPressed: () => Clipboard.setData(
-                ClipboardData(text: document.transcription),
-              ),
+              label: _copied ? "Texto copiado!" : "Copiar texto",
+              onPressed: () => _handleCopy(document.transcription),
             ),
             // const SizedBox(height: 4),
             // ScreenWidthButton(

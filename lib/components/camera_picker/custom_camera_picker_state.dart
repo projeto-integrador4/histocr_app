@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:histocr_app/components/camera_picker/custom_camera_picker_viewer_state.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:histocr_app/components/camera_picker/miniature_widgets.dart';
+import 'package:histocr_app/providers/chat_provider.dart';
+import 'package:histocr_app/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 class CustomCameraPickerState extends CameraPickerState {
@@ -38,6 +41,15 @@ class CustomCameraPickerState extends CameraPickerState {
           ),
         ),
         Align(
+          alignment: Alignment.bottomRight,
+          child: GestureDetector(
+            onTap: () {
+              _submitSelectedImages(context);
+            },
+            child: _sendImagesButton(),
+          ),
+        ),
+        Align(
           alignment: Alignment.bottomCenter,
           child: Visibility(
             visible: images.length >= maxAssets,
@@ -48,12 +60,53 @@ class CustomCameraPickerState extends CameraPickerState {
     );
   }
 
+  void _submitSelectedImages(BuildContext context) {
+    final provider = Provider.of<ChatProvider>(context, listen: false);
+    provider.getTranscription(images);
+    Navigator.pop(context);
+  }
+
+  Widget _sendImagesButton() {
+    return Visibility(
+      visible: images.isNotEmpty,
+      child: Container(
+        height: 48,
+        width: 48,
+        margin: const EdgeInsets.all(8.0),
+        decoration: const BoxDecoration(
+          color: secondaryColor,
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Icon(
+              Icons.check_rounded,
+              size: 24,
+            ),
+            Positioned(
+              top: 24,
+              left: images.length == 10 ? 26 : 30,
+              child: Text(
+                '${images.length}',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  textStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600, color: white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Future<AssetEntity?> pushToViewer({
     required XFile file,
     required CameraPickerViewType viewType,
   }) async {
-    //TODO tá adicionando a imagem na lista quando eu clico no preview 
     final File imageFile = File(file.path);
     setState(() {
       if (!images.contains(imageFile) && images.length < maxAssets) {
@@ -61,17 +114,17 @@ class CustomCameraPickerState extends CameraPickerState {
       }
     });
 
-    final result = await CameraPickerViewer.pushToViewer(
-      context,
-      pickerConfig: pickerConfig,
-      viewType: viewType,
-      previewXFile: file,
-      createViewerState: () => CustomCameraPickerViewerState(
-        images: images,
-        currentIndex: images.indexOf(imageFile),
-      ),
-    );
-    return result;
+    // final result = await CameraPickerViewer.pushToViewer(
+    //   context,
+    //   pickerConfig: pickerConfig,
+    //   viewType: viewType,
+    //   previewXFile: file,
+    //   createViewerState: () => CustomCameraPickerViewerState(
+    //     images: images,
+    //     currentIndex: images.indexOf(imageFile),
+    //   ),
+    // );
+    return null;
   }
 
   @override
@@ -90,12 +143,6 @@ class CustomCameraPickerState extends CameraPickerState {
   Widget buildMiniaturePreview(File image) {
     return MiniaturePreview(
       image: image,
-      selectImage: () {
-        pushToViewer(
-          file: XFile(image.path),
-          viewType: CameraPickerViewType.image,
-        );
-      },
       removeImage: () {
         setState(() {
           images.remove(image);

@@ -153,6 +153,9 @@ class CustomCameraPickerViewerState extends CameraPickerViewerState {
         if (isSavingEntity) {
           return;
         }
+        setState(() {
+          images.remove(images[currentIndex]);
+        });
         Navigator.of(context).pop();
       },
       child: const Text('Voltar para a câmera'),

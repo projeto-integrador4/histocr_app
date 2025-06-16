@@ -44,7 +44,18 @@ class ChatProvider extends BaseProvider {
 
       final request = await _buildFunctionRequest(images: images);
       final document = await DocumentService.getTranscription(request);
-      documentsProvider.addNewDocument(document!);
+      
+      if (document!.originalText == "Não foi possível encontrar um texto") {
+        addMessage(
+          ChatMessage(
+            textContent:
+                'Não foi possível encontrar um texto na imagem, tente novamente com uma imagem diferente.',
+          ),
+        );
+        return;
+      }
+      
+      documentsProvider.addNewDocument(document);
       _addResponseMessages(document);
     } catch (e) {
       addMessage(

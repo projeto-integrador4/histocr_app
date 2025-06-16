@@ -18,7 +18,6 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-
   @override
   initState() {
     super.initState();
@@ -35,13 +34,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final UserInfo? userInfo = provider.userInfo;
 
     return ScaffoldWithReturnButton(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _buildUserInfoWithFallback(userInfo, provider),
-        ),
-      ),
+      child: provider.loading
+          ? const Center(child: LoadingIndicator())
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildUserInfoWithFallback(userInfo, provider),
+              ),
+            ),
     );
   }
 
@@ -89,16 +90,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     final navigator = Navigator.of(context);
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     provider.logout().then((success) {
-                    if (success) {
-                      navigator.pushReplacementNamed(Routes.login);
-                    } else {
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Erro ao sair.'),
-                        ),
-                      );
-                    }
-                  });
+                      if (success) {
+                        navigator.pushReplacementNamed(Routes.login);
+                      } else {
+                        scaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Erro ao sair.'),
+                          ),
+                        );
+                      }
+                    });
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: accentColor,

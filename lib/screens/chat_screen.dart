@@ -116,8 +116,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       ),
                       ButtonSegment(
                         value: ChatType.organization,
-                        label:
-                            Text(organization?.name ?? 'Organização'),
+                        label: Text(organization?.name ?? 'Organização'),
                         icon: const Icon(Icons.business_rounded),
                       ),
                     ],
@@ -181,7 +180,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final permission = await permission_helper.checkPermission();
     if (permission == PermissionState.denied) {
-      await provider.addPermissionTip();
+      if (!mounted) return;
+      await _showPermissionInstructionDialog();
       await permission_helper.requestPermission();
 
       // Check again after requesting
@@ -200,6 +200,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _hasRequestedGalleryPermission = false;
       });
     }
+  }
+
+  Future<void> _showPermissionInstructionDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permissão de Galeria'),
+        content: const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                  text:
+                      'Para escolher imagens da galeria, você precisa conceder permissão a '),
+              TextSpan(
+                text: 'TODAS',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: ' as imagens da galeria.'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                color: secondaryColor,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _pickImagesFromGallery() async {

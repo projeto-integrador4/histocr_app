@@ -212,12 +212,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             children: [
               TextSpan(
                   text:
-                      'Para escolher imagens da galeria, você precisa conceder permissão a '),
+                      'Para escolher imagens da galeria, você precisa selecionar a opção  '),
               TextSpan(
-                text: 'TODAS',
+                text: 'PERMITIR TUDO',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              TextSpan(text: ' as imagens da galeria.'),
+              TextSpan(text: ' nas permissões de galeria.'),
             ],
           ),
         ),

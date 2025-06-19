@@ -13,6 +13,8 @@ import 'package:histocr_app/components/chat/send_picture_button.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/components/star_review.dart';
 import 'package:histocr_app/models/chat_message.dart';
+import 'package:histocr_app/models/organization.dart';
+import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/providers/chat_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:histocr_app/utils/permission_helper.dart' as permission_helper;
@@ -21,6 +23,11 @@ import 'package:histocr_app/utils/predefined_messages_type.dart';
 import 'package:provider/provider.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
+
+enum ChatType {
+  personal,
+  organization,
+}
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -31,10 +38,24 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _hasRequestedGalleryPermission = false;
+  Organization? organization;
+  ChatType _selectedChatType = ChatType.personal;
+
+  String? get _selectedOrganizationId =>
+      _selectedChatType == ChatType.organization ? organization?.id : null;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userOrganization =
+          await Provider.of<AuthProvider>(context, listen: false)
+              .userOrganization;
+      setState(() {
+        organization = userOrganization;
+      });
+    });
   }
 
   @override
@@ -66,6 +87,48 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
       child: ScaffoldWithReturnButton(
+        appBarBottom: organization != null
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: SegmentedButton<ChatType>(
+                    style: ButtonStyle(
+                      backgroundColor:
+                          WidgetStateProperty.resolveWith<Color?>((states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return primaryColor;
+                        }
+                        return backgroundColor;
+                      }),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      // foregroundColor: WidgetStateProperty.all(textColor),
+                    ),
+                    segments: [
+                      const ButtonSegment(
+                        value: ChatType.personal,
+                        label: Text('Pessoal'),
+                        icon: Icon(Icons.person_rounded),
+                      ),
+                      ButtonSegment(
+                        value: ChatType.organization,
+                        label:
+                            Text(organization?.name ?? 'Organização'),
+                        icon: const Icon(Icons.business_rounded),
+                      ),
+                    ],
+                    selected: {_selectedChatType},
+                    onSelectionChanged: (p0) => setState(() {
+                      _selectedChatType = p0.first;
+                    }),
+                  ),
+                ),
+              )
+            : null,
         child: Consumer<ChatProvider>(
           builder: (context, provider, child) => Column(
             children: [
@@ -140,12 +203,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _pickImagesFromGallery() async {
-    final provider = Provider.of<ChatProvider>(context, listen: false);
-    final images = <File>[];
-
     List<AssetEntity>? result = await _openAssetPicker();
 
     if (!mounted) return; // Guard context usage
+
+    await _handlePickedAssets(result);
+  }
+
+  Future<void> _handlePickedAssets(List<AssetEntity>? result) async {
+    final provider = Provider.of<ChatProvider>(context, listen: false);
+    final images = <File>[];
 
     if (result != null) {
       for (final asset in result) {
@@ -155,7 +222,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       }
     }
-    provider.getTranscription(images);
+
+    provider.getTranscription(images, organizationId: _selectedOrganizationId);
   }
 
   Future<List<AssetEntity>?> _openAssetPicker() async {
@@ -182,7 +250,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _pickImagesFromCamera() async {
     await CameraPicker.pickFromCamera(
       context,
-      createPickerState: () => CustomCameraPickerState(maxAssets: 10),
+      createPickerState: () => CustomCameraPickerState(
+          maxAssets: 10, organizationId: _selectedOrganizationId),
       pickerConfig: CameraPickerConfig(
         textDelegate: PortugueseCameraPickerTextDelegate(),
       ),
@@ -200,7 +269,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       isUserMessage: message.isUserMessage,
       child: message.rating != null
           ? StarReview(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               size: 36,
               rating: message.rating!,
             )
@@ -222,9 +291,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return RatingMessage(
           document: message.document!,
           onRatingChanged: (newRating) => provider.updateDocumentRating(
-              rating: newRating,
-              document: message.document!,
-            ),
+            rating: newRating,
+            document: message.document!,
+          ),
         );
 
       case PredefinedMessageType.correction:

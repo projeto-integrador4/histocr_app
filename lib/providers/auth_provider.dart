@@ -1,20 +1,31 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:histocr_app/main.dart';
 import 'package:histocr_app/models/occupation.dart';
+import 'package:histocr_app/models/organization.dart';
 import 'package:histocr_app/models/user_info.dart';
 import 'package:histocr_app/providers/base_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthProvider extends BaseProvider {
   bool hasJob = false;
+  bool? hasOrganization;
   UserInfo? userInfo;
   Occupation? userOccupation;
+  Organization? _userOrganization;
+
+  Future<Organization?> get userOrganization async {
+    if (hasOrganization == null) {
+      await fetchUserOrganization();
+    }
+    return _userOrganization;
+  }
 
   Future<void> login() async {
     setLoading(true);
     try {
       await _nativeGoogleSignIn();
       await fetchUserInfo();
+      await fetchUserOrganization();
       _checkIfUserHasJob();
       success = true;
     } catch (e) {
@@ -136,5 +147,25 @@ class AuthProvider extends BaseProvider {
       setLoading(false);
     }
     return success;
+  }
+
+  Future<void> fetchUserOrganization() async {
+    setLoading(true);
+    try {
+      final supabaseUser = supabase.auth.currentUser;
+      final response = await supabase
+          .from('user_organizations')
+          .select('*, organizations(*)')
+          .eq('user_id', supabaseUser!.id)
+          .limit(1)
+          .single();
+      hasOrganization = true;
+      _userOrganization = Organization.fromJson(response['organizations']);
+    } catch (e) {
+      hasOrganization = false;
+      _userOrganization = null;
+    } finally {
+      setLoading(false);
+    }
   }
 }

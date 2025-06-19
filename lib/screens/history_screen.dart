@@ -4,6 +4,8 @@ import 'package:histocr_app/components/last_transcripts_item.dart';
 import 'package:histocr_app/components/loading_indicator.dart';
 import 'package:histocr_app/components/scaffold_with_return_button.dart';
 import 'package:histocr_app/models/document.dart';
+import 'package:histocr_app/models/organization.dart';
+import 'package:histocr_app/providers/auth_provider.dart';
 import 'package:histocr_app/providers/documents_provider.dart';
 import 'package:histocr_app/theme/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -17,15 +19,24 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   List<Document> filteredDocuments = [];
+  List<Document> documents = [];
+  Organization? organization;
+  int selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<DocumentsProvider>(context, listen: false);
+      final userOrganization =
+          await Provider.of<AuthProvider>(context, listen: false)
+              .userOrganization;
+
       if (!mounted) return;
       setState(() {
-        filteredDocuments = provider.documents;
+        organization = userOrganization;
+        documents = provider.userDocuments;
+        filteredDocuments = documents;
       });
     });
   }
@@ -33,7 +44,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DocumentsProvider>(context);
-    
+
     return ScaffoldWithReturnButton(
       title: Container(
         alignment: Alignment.bottomCenter,
@@ -52,13 +63,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
           onChanged: (value) => setState(() {
-            filteredDocuments = provider.documents
+            filteredDocuments = documents
                 .where((doc) =>
                     doc.name.toLowerCase().contains(value.toLowerCase()))
                 .toList();
           }),
         ),
       ),
+      bottomNavigationBar: organization != null
+          ? NavigationBar(
+              backgroundColor: primaryColor,
+              destinations: [
+                const NavigationDestination(
+                  icon: Icon(Icons.person_rounded),
+                  label: 'Pessoais',
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.domain_rounded),
+                  label: organization?.name ?? 'Organização',
+                ),
+              ],
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (value) =>
+                  _handleDestinationSelected(value),
+            )
+          : null,
       child: provider.loading
           ? const Center(child: LoadingIndicator())
           : filteredDocuments.isNotEmpty
@@ -79,5 +108,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 )
               : const Center(child: Text('Nenhum documento encontrado')),
     );
+  }
+
+  void _handleDestinationSelected(int value) {
+    setState(() {
+      final provider = Provider.of<DocumentsProvider>(context, listen: false);
+      if (value == 0) {
+        documents = provider.userDocuments;
+      } else {
+        documents = provider.organizationDocuments;
+      }
+      filteredDocuments = documents;
+      selectedIndex = value;
+    });
   }
 }

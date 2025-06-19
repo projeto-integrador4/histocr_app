@@ -11,7 +11,8 @@ import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 class CustomCameraPickerState extends CameraPickerState {
   List<File> images = [];
   final int maxAssets;
-  CustomCameraPickerState({required this.maxAssets});
+  final String? organizationId;
+  CustomCameraPickerState({required this.maxAssets, this.organizationId});
 
   @override
   Widget buildCameraPreview({
@@ -62,7 +63,7 @@ class CustomCameraPickerState extends CameraPickerState {
 
   void _submitSelectedImages(BuildContext context) {
     final provider = Provider.of<ChatProvider>(context, listen: false);
-    provider.getTranscription(images);
+    provider.getTranscription(images, organizationId: organizationId);
     Navigator.pop(context);
   }
 

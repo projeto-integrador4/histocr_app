@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: <Widget>[
               const HistocrTitle(),
               Consumer<DocumentsProvider>(builder: (context, provider, child) {
-                final documents = provider.documents.take(3).toList();
+                final documents = provider.allDocuments.take(3).toList();
                 return Container(
                   child: provider.loading
                       ? const Center(child: LoadingIndicator())

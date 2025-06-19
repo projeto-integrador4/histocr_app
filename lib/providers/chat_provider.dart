@@ -35,14 +35,14 @@ class ChatProvider extends BaseProvider {
     notifyListeners();
   }
 
-  void getTranscription(List<File> images) async {
+  void getTranscription(List<File> images, {String? organizationId}) async {
     if (images.isEmpty) return;
     _addUserMessages(images);
 
     try {
       setLoading(true);
 
-      final request = await _buildFunctionRequest(images: images);
+      final request = await _buildFunctionRequest(images: images, organizationId: organizationId);
       final document = await DocumentService.getTranscription(request);
       
       if (document!.originalText == "Não foi possível encontrar um texto") {
@@ -176,6 +176,7 @@ class ChatProvider extends BaseProvider {
 
   Future<TranscriptionRequest> _buildFunctionRequest({
     required List<File> images,
+    String? organizationId,
   }) async {
     final imageTranscriptionRequests = await Future.wait(
       images.map((image) => ImageTranscriptionRequest.fromFile(image)),
@@ -183,6 +184,7 @@ class ChatProvider extends BaseProvider {
 
     return TranscriptionRequest(
       images: imageTranscriptionRequests,
+      organizationId: organizationId,
     );
   }
 

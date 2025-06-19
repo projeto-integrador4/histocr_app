@@ -4,7 +4,16 @@ class ScaffoldWithReturnButton extends StatelessWidget {
   final Widget child;
   final Widget? title;
   final bool? popResult;
-  const ScaffoldWithReturnButton({super.key, required this.child, this.title, this.popResult});
+  final Widget? bottomNavigationBar;
+  final PreferredSizeWidget? appBarBottom;
+  
+  const ScaffoldWithReturnButton(
+      {super.key,
+      required this.child,
+      this.title,
+      this.popResult,
+      this.bottomNavigationBar,
+      this.appBarBottom});
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +28,10 @@ class ScaffoldWithReturnButton extends StatelessWidget {
           iconSize: 40,
         ),
         title: title,
+        bottom: appBarBottom,
       ),
       body: child,
+      bottomNavigationBar: bottomNavigationBar,
     );
   }
 }

@@ -4,7 +4,12 @@ import 'package:histocr_app/providers/base_provider.dart';
 import 'package:histocr_app/services/document_service.dart';
 
 class DocumentsProvider extends BaseProvider {
-  List<Document> documents = [];
+  List<Document> allDocuments = [];
+
+  get userDocuments =>
+      allDocuments.where((doc) => doc.organizationId == null).toList();
+  get organizationDocuments =>
+      allDocuments.where((doc) => doc.organizationId != null).toList();
 
   // --- Public API ---
   Future<void> fetchDocuments({int? limit}) async {
@@ -15,7 +20,7 @@ class DocumentsProvider extends BaseProvider {
     try {
       final fetchedDocuments =
           await DocumentService.fetchDocuments(limit: limit);
-      documents = fetchedDocuments ?? [];
+      allDocuments = fetchedDocuments ?? [];
     } catch (e) {
       success = false;
       throw Exception('Erro ao carregar documentos: $e');
@@ -85,7 +90,7 @@ class DocumentsProvider extends BaseProvider {
   }
 
   void addNewDocument(Document document) {
-    documents.insert(0, document);
+    allDocuments.insert(0, document);
     notifyListeners();
   }
 }

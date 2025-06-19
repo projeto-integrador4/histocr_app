@@ -47,7 +47,8 @@ class DocumentService {
         body: request.toJson(),
       );
 
-      return Document.fromTranscriptionResponseJson(response.data);
+      return Document.fromTranscriptionResponseJson(
+          response.data, request.organizationId);
     } catch (e) {
       throw Exception(
         'Erro ao processar a imagem: $e',
